@@ -14,10 +14,13 @@ class Day3KtTest {
     }
 
     @Test
+    fun part2Sample() {
+        assertThat(solve_part2_sample())
+            .isEqualTo(467835)
+    }
+
+    @Test
     fun getNumbers() {
-        day3.getNumbers().forEach {
-            println(it)
-        }
         assertThat(day3.getNumbers())
             .hasSize(10)
     }

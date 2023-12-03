@@ -1,7 +1,17 @@
 package info.vervaeke.aoc2023.day3
 
 data class Coord(val row: Int, val col: Int)
-data class Number(val row: Int, val cols: IntRange, val value: Int)
+data class Number(val row: Int, val cols: IntRange, val value: Int) {
+    fun isAdjacent(symbol: Coord): Boolean {
+        return row - 1 <= symbol.row && symbol.row <= row + 1 &&
+                cols.start - 1 <= symbol.col && symbol.col <= cols.endInclusive + 1
+    }
+}
+
+data class Gear(val pos: Coord, val numbers: List<Number>) {
+    val ratio: Int
+        get() = numbers[0].value * numbers[1].value
+}
 
 private fun Char.isSymbol(): Boolean {
     return this != '.' && this !in "0123456789"
@@ -18,6 +28,13 @@ class Day3(val lines: List<String>) {
         val parts = getNumbers().filter { isPartNumber(it) }
         parts.forEach { println(it) }
         return parts
+    }
+
+    fun getSymbols(): List<Coord> {
+        return lines.flatMapIndexed { row, line ->
+            lines.mapIndexed { col, ch -> Coord(row, col) }
+                .filter { lines[it.row][it.col].isSymbol() }
+        }
     }
 
     fun isPartNumber(number: Number): Boolean {
@@ -48,6 +65,13 @@ class Day3(val lines: List<String>) {
             it.isSymbol()
         }
     }
+
+    fun getGears(): List<Gear> {
+        val numbers = getNumbers()
+        return getSymbols().map { symbol ->
+            Gear(symbol, numbers.filter { it.isAdjacent(symbol) })
+        }.filter { it.numbers.size == 2}
+    }
 }
 
 private fun String.getNumbers(idx: Int): List<Number> {
@@ -67,7 +91,7 @@ fun solve_part1(lines: List<String>): Int {
 }
 
 fun solve_part2(lines: List<String>): Int {
-    return 42
+    return Day3(lines).getGears().sumOf { it.ratio }
 }
 
 fun solve_part1_sample() = solve_part1(read_input("sample"))
