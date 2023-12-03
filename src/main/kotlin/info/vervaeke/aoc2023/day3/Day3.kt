@@ -20,14 +20,28 @@ private fun Char.isSymbol(): Boolean {
 class Day3(val lines: List<String>) {
     val rows: Int = lines.size
     val cols: Int = lines[0].length
+
+    companion object {
+        fun readInput(path: String) = parseLines(javaClass.getResource(path)!!.readText().lines())
+        fun parseLines(lines: List<String>) = lines.map(::parseLine)
+        fun parseLine(line: String) = line
+    }
+
+    fun part1(): Int {
+        return getPartNumbers().sumOf { it.value }
+    }
+
+    fun part2(): Int {
+        return Day3(lines).getGears().sumOf { it.ratio }
+    }
+
+
     fun getNumbers(): List<Number> {
         return lines.flatMapIndexed { idx, line -> line.getNumbers(idx) }
     }
 
     fun getPartNumbers(): List<Number> {
-        val parts = getNumbers().filter { isPartNumber(it) }
-        parts.forEach { println(it) }
-        return parts
+        return getNumbers().filter { isPartNumber(it) }
     }
 
     fun getSymbols(): List<Coord> {
@@ -82,27 +96,13 @@ private fun String.getNumbers(idx: Int): List<Number> {
         .toList()
 }
 
-fun read_input(path: String) = parse_lines(Day3::class.java.getResource(path)!!.readText().lines())
-fun parse_lines(lines: List<String>) = lines.map(::parse_line)
-fun parse_line(line: String) = line
-
-fun solve_part1(lines: List<String>): Int {
-    return Day3(lines).getPartNumbers().sumOf { it.value }
-}
-
-fun solve_part2(lines: List<String>): Int {
-    return Day3(lines).getGears().sumOf { it.ratio }
-}
-
-fun solve_part1_sample() = solve_part1(read_input("sample"))
-fun solve_part1_real() = solve_part1(read_input("input"))
-fun solve_part2_sample() = solve_part2(read_input("sample"))
-fun solve_part2_real() = solve_part2(read_input("input"))
-
 fun main() {
-    println("Part 1 sample: ${solve_part1_sample()}")
-    println("Part 1 real: ${solve_part1_real()}")
-    println("Part 2 sample: ${solve_part2_sample()}")
-    println("Part 2 real: ${solve_part2_real()}")
+    val sample = Day3.readInput("sample")
+    val input = Day3.readInput("input")
+
+    println("Part 1 sample: ${Day3(sample).part1()}")
+    println("Part 1 real: ${Day3(sample).part1()}")
+    println("Part 2 sample: ${Day3(input).part2()}")
+    println("Part 2 real: ${Day3(input).part2()}")
 }
 

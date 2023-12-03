@@ -2,7 +2,7 @@ package info.vervaeke.aoc2023.day4
 
 class Day4(val lines: List<String>) {
     companion object {
-        fun readInput(path: String) = parseLines(Day4::class.java.getResource(path)!!.readText().lines())
+        fun readInput(path: String) = parseLines(javaClass.getResource(path)!!.readText().lines())
         fun parseLines(lines: List<String>) = lines.map(::parseLine)
         fun parseLine(line: String) = line
     }
@@ -14,7 +14,6 @@ class Day4(val lines: List<String>) {
     fun part2(): Int {
         return 42
     }
-
 }
 
 

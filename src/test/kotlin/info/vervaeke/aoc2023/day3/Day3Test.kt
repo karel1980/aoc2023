@@ -3,19 +3,20 @@ package info.vervaeke.aoc2023.day3
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class Day3KtTest {
+class Day3Test {
 
-    val day3 = Day3(read_input("sample"))
+    val sample = Day3.readInput("sample")
+    val day3 = Day3(sample)
 
     @Test
     fun part1Sample() {
-        assertThat(solve_part1_sample())
+        assertThat(day3.part1())
             .isEqualTo(4361)
     }
 
     @Test
     fun part2Sample() {
-        assertThat(solve_part2_sample())
+        assertThat(day3.part2())
             .isEqualTo(467835)
     }
 
