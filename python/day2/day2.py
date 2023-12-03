@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+from support.astar import astar
 
 def is_possible(game, red, green, blue):
     cube_counts = {'red': 0, 'green': 0, 'blue': 0}

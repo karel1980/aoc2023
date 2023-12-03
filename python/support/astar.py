@@ -1,6 +1,6 @@
 import heapq
 
-def astar_variable_cost(grid, start, goal, cost_fn):
+def astar(grid, start, goal, cost_fn):
     rows, cols = len(grid), len(grid[0])
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
