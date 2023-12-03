@@ -70,7 +70,7 @@ class Day3(val lines: List<String>) {
         val numbers = getNumbers()
         return getSymbols().map { symbol ->
             Gear(symbol, numbers.filter { it.isAdjacent(symbol) })
-        }.filter { it.numbers.size == 2}
+        }.filter { it.numbers.size == 2 }
     }
 }
 
