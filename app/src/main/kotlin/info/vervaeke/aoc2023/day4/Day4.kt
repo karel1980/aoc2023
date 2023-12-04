@@ -1,5 +1,17 @@
 package info.vervaeke.aoc2023.day4
 
+import java.util.regex.Pattern
+import kotlin.math.pow
+
+data class Card(val winning: List<Int>, val yours: List<Int>) {
+    val matches = winning.toSet().intersect(yours.toSet())
+    val score = if (matches.isEmpty()) {
+        0
+    } else {
+        2.toDouble().pow(matches.size - 1).toInt()
+    }
+}
+
 class Day4(val lines: List<String>) {
     companion object {
         fun readInput(path: String) = parseLines(javaClass.getResource(path)!!.readText().lines())
@@ -8,12 +20,25 @@ class Day4(val lines: List<String>) {
     }
 
     fun part1(): Int {
-        return 42
+        return lines.map { it.toCard() }
+            .map { it.score }
+            .sum()
     }
 
     fun part2(): Int {
         return 42
     }
+}
+
+private fun String.toCard(): Card {
+    println(this)
+    val parts = this.split(":")
+    val nums = parts[1].trim().split("|")
+
+    println(nums)
+    val winning = nums[0].trim().split(Pattern.compile(" +")).map { it.toInt() }
+    val yours = nums[1].trim().split(Pattern.compile(" +")).map { it.toInt() }
+    return Card(winning, yours)
 }
 
 

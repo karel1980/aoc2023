@@ -13,6 +13,8 @@ plugins {
     application
 }
 
+val antlrKotlinVersion = "4.13.1"
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
