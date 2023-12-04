@@ -16,6 +16,6 @@ class Day4Test {
     @Test
     fun part2Sample() {
         assertThat(Day4(sample).part2())
-            .isEqualTo(42)
+            .isEqualTo(30)
     }
 }

@@ -3,13 +3,19 @@ package info.vervaeke.aoc2023.day4
 import java.util.regex.Pattern
 import kotlin.math.pow
 
-data class Card(val winning: List<Int>, val yours: List<Int>) {
+class Card(val id: Int, val winning: List<Int>, val yours: List<Int>, var count: Int = 1) {
     val matches = winning.toSet().intersect(yours.toSet())
     val score = if (matches.isEmpty()) {
         0
     } else {
         2.toDouble().pow(matches.size - 1).toInt()
     }
+
+    override fun toString(): String {
+        return "Card(id=$id, winning=$winning, yours=$yours, count=$count, matches=$matches, score=$score)"
+    }
+
+
 }
 
 class Day4(val lines: List<String>) {
@@ -26,7 +32,23 @@ class Day4(val lines: List<String>) {
     }
 
     fun part2(): Int {
-        return 42
+        val cards = lines.map { it.toCard() }
+        val cardsById = cards.associateBy { it.id }
+
+        cards.forEach { card ->
+            val score = card.matches.size
+            val count = card.count
+            println("card ${card.id} score is $score")
+            (card.id + 1..card.id + score).forEach {
+                println("Incrementing $it by $count")
+                if (it in cardsById.keys) {
+                    cardsById[it]!!.count += count
+                }
+            }
+        }
+
+        cards.forEach { println(it )}
+        return cards.sumOf { it.count }
     }
 }
 
@@ -35,10 +57,10 @@ private fun String.toCard(): Card {
     val parts = this.split(":")
     val nums = parts[1].trim().split("|")
 
-    println(nums)
+    val id = parts[0].split(Pattern.compile(" +"))[1].toInt()
     val winning = nums[0].trim().split(Pattern.compile(" +")).map { it.toInt() }
     val yours = nums[1].trim().split(Pattern.compile(" +")).map { it.toInt() }
-    return Card(winning, yours)
+    return Card(id, winning, yours)
 }
 
 
@@ -49,6 +71,6 @@ fun main() {
     println("Part 1 sample: ${Day4(sample).part1()}")
     println("Part 1 real: ${Day4(input).part1()}")
     println("Part 2 sample: ${Day4(sample).part2()}")
-    println("Part 2 real: ${Day4(sample).part2()}")
+    println("Part 2 real: ${Day4(input).part2()}")
 }
 
