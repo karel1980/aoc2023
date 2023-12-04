@@ -38,22 +38,18 @@ class Day4(val lines: List<String>) {
         cards.forEach { card ->
             val score = card.matches.size
             val count = card.count
-            println("card ${card.id} score is $score")
             (card.id + 1..card.id + score).forEach {
-                println("Incrementing $it by $count")
                 if (it in cardsById.keys) {
                     cardsById[it]!!.count += count
                 }
             }
         }
 
-        cards.forEach { println(it )}
         return cards.sumOf { it.count }
     }
 }
 
 private fun String.toCard(): Card {
-    println(this)
     val parts = this.split(":")
     val nums = parts[1].trim().split("|")
 
