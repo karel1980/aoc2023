@@ -1,71 +1,44 @@
 package info.vervaeke.aoc2023.day5
 
-data class Range(val sourceStart: Long, val destinationStart: Long, val size: Long) {
+data class RangeMap(val sourceStart: Long, val destinationStart: Long, val size: Long) {
     val offset = destinationStart - sourceStart
     val sourceRange = sourceStart until sourceStart + size
 
     fun contains(value: Long): Boolean {
-        return value in sourceStart until sourceStart + size
+        return value in sourceRange
     }
 
     fun map(value: Long): Long {
-        return destinationStart + (value - sourceStart)
-    }
-
-    fun applyValueRange(valueRange: LongRange): List<LongRange> {
-        val changePoints = setOf(valueRange.start, valueRange.endInclusive + 1, sourceStart, sourceStart + size).toList().sorted()
-        return changePoints.dropLast(1)
-            .zip(changePoints.drop(1))
-            .map { it.first until it.second } // all interesting ranges
-            .filter { !it.isEmpty() } // ignore empty regions
-            .filter { it.start in valueRange } // only keep regions that are in valueRange
-            .mapNotNull {
-                if (it.start in sourceRange) {
-                    it.start + offset..it.endInclusive + offset
-                } else {
-                    null
-                }
-            }
+        return value + offset
     }
 }
 
-data class RangeMapper(val source: String, val destination: String, val ranges: List<Range>) {
+data class RangeMapper(val source: String, val destination: String, val rangeMaps: List<RangeMap>) {
     init {
         validate()
     }
 
     private fun validate() {
-        ranges.indices.forEach { i ->
-            ranges.indices.forEach { j ->
+        rangeMaps.indices.forEach { i ->
+            rangeMaps.indices.forEach { j ->
                 if (i != j) {
-                    if (ranges[i].sourceRange.start in ranges[j].sourceRange) {
-                        TODO("kapot")
+                    if (rangeMaps[i].sourceRange.start in rangeMaps[j].sourceRange) {
+                        TODO("overlapping ranges - panic")
                     }
-                    if (ranges[i].sourceRange.endInclusive in ranges[j].sourceRange) {
-                        TODO("kapot")
+                    if (rangeMaps[i].sourceRange.endInclusive in rangeMaps[j].sourceRange) {
+                        TODO("overlapping ranges - panic")
                     }
                 }
             }
         }
     }
 
-    fun toDestination(value: Long): Long {
-        return ranges.firstOrNull { it.contains(value) }?.map(value) ?: value
-    }
+    fun mapInputRanges(inputRanges: List<LongRange>) = inputRanges.flatMap { mapSingleRange(it, rangeMaps)}
 
-    fun toDestinations(valueRanges: List<LongRange>): List<LongRange> {
-        val result = valueRanges.flatMap {
-            toDestinations(it)
-        }
-        return result
-    }
+    fun mapSingleRange(inputRange: LongRange) =
+        split(inputRange, rangeMaps).map { it.first.start + it.second..it.first.endInclusive + it.second }
 
-    private fun toDestinations(valueRange: LongRange): List<LongRange> {
-        val result = ranges.flatMap {
-            it.applyValueRange(valueRange)
-        }
-        return result
-    }
+    fun toDestination(value: Long) = rangeMaps.firstOrNull { it.contains(value) }?.map(value) ?: value
 
 }
 
@@ -79,6 +52,16 @@ class Almanac(
     val temperatureToHumidity: RangeMapper,
     val humidityToLocation: RangeMapper,
 ) {
+    val mappers = listOf(
+        seedToSoil,
+        soilToFertilizer,
+        fertilizerToWater,
+        waterToLight,
+        lightToTemperature,
+        temperatureToHumidity,
+        humidityToLocation
+    )
+
     val seedRanges = (0 until seeds.size).step(2).map {
         seeds[it] until (seeds[it] + seeds[it + 1])
     }
@@ -91,38 +74,12 @@ class Almanac(
         val temp = lightToTemperature.toDestination(light)
         val hum = temperatureToHumidity.toDestination(temp)
         val loc = humidityToLocation.toDestination(hum)
-
-//        println("seed $seed")
-//        println("soil $soil")
-//        println("fert $fert")
-//        println("water $wat")
-//        println("light $light")
-//        println("temp $temp")
-//        println("hum $hum")
-//        println("loc $loc")
-//        println()
-
         return loc
     }
 
     fun seedsToLocations(seeds: List<LongRange>): List<LongRange> {
-        println("seeds: $seeds")
-        val soil = seeds.flatMap { mapRange(it, seedToSoil.ranges) }
-        println("soils: $soil")
-        val fert = soil.flatMap { mapRange(it, soilToFertilizer.ranges) }
-        println("fertilizers: $fert")
-        val wat = fert.flatMap { mapRange(it, fertilizerToWater.ranges) }
-//        println("waters: $wat")
-        val light = wat.flatMap { mapRange(it, waterToLight.ranges) }
-//        println("lights: $light")
-        val temp = light.flatMap { mapRange(it, lightToTemperature.ranges) }
-//        println("temps: $temp")
-        val hum = temp.flatMap { mapRange(it, temperatureToHumidity.ranges) }
-//        println("hum: $hum")
-        val loc = hum.flatMap { mapRange(it, humidityToLocation.ranges) }
-//        println("loc: $loc")
-
-        return loc
+        return mappers
+            .fold(seeds) { ranges, rangeMapper -> rangeMapper.mapInputRanges(ranges) }
     }
 
     fun minimumLocationFromSeedRange(seeds: List<LongRange>) = seedsToLocations(seeds).minOf { it.start }
@@ -157,9 +114,9 @@ fun createRangeMapper(source: String, lines: List<String>): RangeMapper {
     return RangeMapper(source, destination, maplines.map { it.toRange() })
 }
 
-private fun String.toRange(): Range {
+private fun String.toRange(): RangeMap {
     val parts = this.split(" ").map { it.toLong() }
-    return Range(parts[1], parts[0], parts[2])
+    return RangeMap(parts[1], parts[0], parts[2])
 }
 
 class Day5(val lines: List<String>) {
@@ -196,27 +153,16 @@ fun main() {
     println("Part 2 real: ${Day5(input).part2()}")
 }
 
-
-fun mapRange(inputRange: LongRange, range: Range): List<LongRange> {
-    return listOf()
+fun mapSingleRange(inputRange: LongRange, rangeMaps: List<RangeMap>): List<LongRange> {
+    val sections = split(inputRange, rangeMaps)
+    return sections.map { it.first.start + it.second..it.first.endInclusive + it.second }
 }
 
-fun mapRange(inputRange: LongRange, ranges: List<Range>): List<LongRange> {
-    // find all ranges which overlap with inputrange:
-
-    val overlappingRanges = ranges.filter { it.sourceRange.start in inputRange || it.sourceRange.endInclusive in inputRange }
-
-    val sections = split(inputRange, ranges)
-
-    // now convert the sections according to their offset
-    return sections.map { it -> it.first.start + it.second..it.first.endInclusive + it.second }
-}
-
-fun split(inputRange: LongRange, ranges: List<Range>): List<Pair<LongRange, Long>> {
+fun split(inputRange: LongRange, rangeMaps: List<RangeMap>): List<Pair<LongRange, Long>> {
     val changePoints = buildList {
         add(inputRange.start)
         add(inputRange.endInclusive + 1)
-        ranges.forEach {
+        rangeMaps.forEach {
             add(it.sourceRange.start)
             add(it.sourceRange.endInclusive + 1)
         }
@@ -226,7 +172,6 @@ fun split(inputRange: LongRange, ranges: List<Range>): List<Pair<LongRange, Long
         .map { it.first until it.second }
         .filter { it.start in inputRange }
     return sections.map { section ->
-        section to (ranges.firstOrNull { section.start in it.sourceRange }?.offset ?: 0L)
+        section to (rangeMaps.firstOrNull { section.start in it.sourceRange }?.offset ?: 0L)
     }
-
 }
