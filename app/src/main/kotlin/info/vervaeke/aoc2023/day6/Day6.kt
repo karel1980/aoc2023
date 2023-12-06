@@ -8,9 +8,9 @@ const val makeItFaster = true
 data class Day6(val times: List<Long>, val records: List<Long>) {
 
     companion object {
-        fun parseInput(path: String) = parse(readInput(path))
+        fun parseInput(path: String) = parseLines(readInput(path))
         fun readInput(path: String) = javaClass.getResource(path)!!.readText().lines()
-        fun parse(lines: List<String>) = Day6(
+        fun parseLines(lines: List<String>) = Day6(
             lines[0].split(":")[1].trim().split(Pattern.compile(" +"))
                 .map { it.toLong() },
             lines[1].split(":")[1].trim().split(Pattern.compile(" +"))
