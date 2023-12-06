@@ -4,11 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class Day5Test {
-    val day5 = Day5(Day5.readInput("sample"))
+    val almanac = Almanac.parseInput("sample")
 
     @Test
     fun part1() {
-        assertThat(day5.part1())
+        assertThat(almanac.part1())
             .isEqualTo(35L)
     }
 
@@ -22,13 +22,13 @@ class Day5Test {
 
     @Test
     fun part2() {
-        assertThat(day5.part2())
+        assertThat(almanac.part2())
             .isEqualTo(46)
     }
 
     @Test
     fun part2_real() {
-        assertThat(Day5(Day5.readInput("input")).part2())
+        assertThat(Almanac.parseInput("input").part2())
             .isEqualTo(219529182L)
     }
 
@@ -43,7 +43,7 @@ class Day5Test {
 
     @Test
     fun day5_numberOfSeeds() {
-        val numberOfSeeds = day5.almanac.seedRanges.sumOf {
+        val numberOfSeeds = almanac.seedRanges.sumOf {
             it.endInclusive - it.start + 1
         }
 

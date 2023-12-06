@@ -23,17 +23,17 @@ data class RangeMapper(val source: String, val destination: String, val rangeMap
             rangeMaps.indices.forEach { j ->
                 if (i != j) {
                     if (rangeMaps[i].sourceRange.start in rangeMaps[j].sourceRange) {
-                        TODO("overlapping ranges - panic")
+                        TODO("overlapping source ranges - panic")
                     }
                     if (rangeMaps[i].sourceRange.endInclusive in rangeMaps[j].sourceRange) {
-                        TODO("overlapping ranges - panic")
+                        TODO("overlapping source ranges - panic")
                     }
                 }
             }
         }
     }
 
-    fun mapInputRanges(inputRanges: List<LongRange>) = inputRanges.flatMap { mapSingleRange(it, rangeMaps)}
+    fun mapInputRanges(inputRanges: List<LongRange>) = inputRanges.flatMap { mapSingleRange(it, rangeMaps) }
 
     fun mapSingleRange(inputRange: LongRange) =
         split(inputRange, rangeMaps).map { it.first.start + it.second..it.first.endInclusive + it.second }
@@ -61,10 +61,40 @@ class Almanac(
         temperatureToHumidity,
         humidityToLocation
     )
-
     val seedRanges = (0 until seeds.size).step(2).map {
         seeds[it] until (seeds[it] + seeds[it + 1])
     }
+
+    companion object {
+        fun parseInput(path: String) = createAlmanac(readInput(path))
+        fun readInput(path: String) = javaClass.getResource(path)!!.readText().lines()
+
+        fun createAlmanac(lines: List<String>): Almanac {
+            val seeds = lines[0].split(":")[1].trim().split(" ").map { it.toLong() }
+
+            val sts = createRangeMapper("seed", lines)
+            val stf = createRangeMapper("soil", lines)
+            val ftw = createRangeMapper("fertilizer", lines)
+            val wtl = createRangeMapper("water", lines)
+            val ltt = createRangeMapper("light", lines)
+            val tth = createRangeMapper("temperature", lines)
+            val htl = createRangeMapper("humidity", lines)
+
+            return Almanac(seeds, sts, stf, ftw, wtl, ltt, tth, htl)
+
+        }
+    }
+
+    fun part1(): Long {
+        return seeds.minOf {
+            seedToLocation(it)
+        }
+    }
+
+    fun part2(): Long {
+        return minimumLocationFromSeedRange(seedRanges)
+    }
+
 
     fun seedToLocation(seed: Long): Long {
         val soil = seedToSoil.toDestination(seed)
@@ -83,20 +113,6 @@ class Almanac(
     }
 
     fun minimumLocationFromSeedRange(seeds: List<LongRange>) = seedsToLocations(seeds).minOf { it.start }
-}
-
-fun createAlmanac(lines: List<String>): Almanac {
-    val seeds = lines[0].split(":")[1].trim().split(" ").map { it.toLong() }
-
-    val sts = createRangeMapper("seed", lines)
-    val stf = createRangeMapper("soil", lines)
-    val ftw = createRangeMapper("fertilizer", lines)
-    val wtl = createRangeMapper("water", lines)
-    val ltt = createRangeMapper("light", lines)
-    val tth = createRangeMapper("temperature", lines)
-    val htl = createRangeMapper("humidity", lines)
-
-    return Almanac(seeds, sts, stf, ftw, wtl, ltt, tth, htl)
 }
 
 fun createRangeMapper(source: String, lines: List<String>): RangeMapper {
@@ -119,38 +135,18 @@ private fun String.toRange(): RangeMap {
     return RangeMap(parts[1], parts[0], parts[2])
 }
 
-class Day5(val lines: List<String>) {
-    val almanac = createAlmanac(lines)
-
-    companion object {
-        fun readInput(path: String) = parseLines(javaClass.getResource(path)!!.readText().lines())
-        fun parseLines(lines: List<String>) = lines.map(::parseLine)
-        fun parseLine(line: String) = line.trim()
-    }
-
-    fun part1(): Long {
-        return almanac.seeds.minOf {
-            almanac.seedToLocation(it)
-        }
-    }
-
-    fun part2(): Long {
-        return almanac.minimumLocationFromSeedRange(almanac.seedRanges)
-    }
-}
-
 fun main() {
-    val sample = Day5.readInput("sample")
-    val input = Day5.readInput("input")
+    val sample = Almanac.parseInput("sample")
+    val input = Almanac.parseInput("input")
 
-    println("Part 1 sample: ${Day5(sample).part1()}")
+    println("Part 1 sample: ${sample.part1()}")
 
     //9849901 too low
-    println("Part 1 real: ${Day5(input).part1()}")
+    println("Part 1 real: ${input.part1()}")
 
-    println("Part 2 sample: ${Day5(sample).part2()}")
+    println("Part 2 sample: ${sample.part2()}")
 
-    println("Part 2 real: ${Day5(input).part2()}")
+    println("Part 2 real: ${input.part2()}")
 }
 
 fun mapSingleRange(inputRange: LongRange, rangeMaps: List<RangeMap>): List<LongRange> {
