@@ -17,3 +17,8 @@ class Day7(val lines: List<String>) {
     }
 
 }
+
+fun main() {
+    println("Part 1: ${Day7.parseInput("input").part1()}")
+    println("Part 2: ${Day7.parseInput("input").part2()}")
+}
