@@ -18,6 +18,23 @@ data class Day6(val times: List<Long>, val records: List<Long>) {
         )
     }
 
+    fun part1(): Long {
+        val findWaysToImprove = times.zip(records).map { (raceTime, best) ->
+            numberOfWaysToImprove(raceTime, best)
+        }
+
+        return calculateProduct(findWaysToImprove)
+    }
+
+    private fun calculateProduct(findWaysToImprove: List<Long>): Long =
+        findWaysToImprove.foldRight(1) { a, b -> a * b }
+
+    fun part2(): Long {
+        val joinedTime = times.joinToString("").toLong()
+        val joinedRecords = records.joinToString("").toLong()
+        return numberOfWaysToImprove(joinedTime, joinedRecords)
+    }
+
     fun getDistance(totalTime: Long, buttonTime: Long): Long {
         if (buttonTime == 0L) {
             return 0
@@ -25,18 +42,6 @@ data class Day6(val times: List<Long>, val records: List<Long>) {
         val speed = buttonTime;
         val duration = totalTime - buttonTime
         return speed * duration
-    }
-
-    fun part1(): Long {
-        return times.indices.map {
-            numberOfWaysToImprove(times[it], records[it])
-        }.foldRight(1) { a, b -> a * b }
-    }
-
-    fun part2(): Long {
-        val joinedTime = times.joinToString("").toLong()
-        val joinedRecords = records.joinToString("").toLong()
-        return numberOfWaysToImprove(joinedTime, joinedRecords)
     }
 
     private fun numberOfWaysToImprove(time: Long, best: Long): Long {
