@@ -43,7 +43,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass.set("info.vervaeke.aoc2023/Day3Kt")
+    mainClass.set("info.vervaeke.aoc2023/day3/Day3Kt")
 }
 
 tasks.named<Test>("test") {
