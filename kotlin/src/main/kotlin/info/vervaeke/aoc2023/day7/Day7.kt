@@ -17,7 +17,7 @@ enum class Face(val symbol: String) {
 
     companion object {
         fun ofSymbol(symbol: String): Face {
-            return values().first { it.symbol == symbol }
+            return entries.first { it.symbol == symbol }
         }
     }
 }
@@ -105,30 +105,26 @@ class Day7(val handBids: List<HandBid>) {
         return totalWinnings()
     }
 
-    fun totalWinnings(): Int {
-        val sortedHands = handBids.sortedBy { it.hand }
-        sortedHands.forEach {
-            println(it)
-        }
-        return sortedHands
-            .mapIndexed { idx, it ->
-                (idx + 1) * it.bidValue
-            }
-            .sum()
-
-    }
-
     fun part2(): Int {
-        val sortedHands = handBids.sortedWith(Joker())
-        sortedHands.forEach {
-            println(it)
-        }
-        return sortedHands
+        return totalWinningsWithJokerRule()
+    }
+
+    fun totalWinnings(): Int {
+        return handBids
+            .sortedBy { it.hand }
             .mapIndexed { idx, it ->
                 (idx + 1) * it.bidValue
             }
             .sum()
+
     }
+
+    private fun totalWinningsWithJokerRule() = handBids
+        .sortedWith(Joker())
+        .mapIndexed { idx, it ->
+            (idx + 1) * it.bidValue
+        }
+        .sum()
 
 }
 
@@ -143,7 +139,7 @@ class Joker : Comparator<HandBid> {
         }
 
         // compare faces
-        left.faces.zip(right.faces).forEachIndexed { idx, it ->
+        left.faces.zip(right.faces).forEach {
             if (it.first != it.second) {
                 if (it.first == Face.JACK) {
                     return -1

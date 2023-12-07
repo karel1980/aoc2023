@@ -20,6 +20,18 @@ class Day7Test {
     }
 
     @Test
+    fun part1_real() {
+        assertThat(Day7.parseInput("input").part1())
+            .isEqualTo(251287184)
+    }
+
+    @Test
+    fun part2_real() {
+        assertThat(Day7.parseInput("input").part2())
+            .isEqualTo(250757288)
+    }
+
+    @Test
     fun `hand type`() {
         assertThat("AAAAA".toHand().handType())
             .isEqualTo(HandType.FIVE)
@@ -64,18 +76,22 @@ class Day7Test {
     @Test
     fun sortHandTypes() {
         assertThat(day7.handBids.sortedBy { it.hand.bestHandType() }.map { it.hand.toString() })
-            .isEqualTo(listOf(
-                "32T3K", "KK677", "T55J5", "KTJJT", "QQQJA"
-            ))
+            .isEqualTo(
+                listOf(
+                    "32T3K", "KK677", "T55J5", "KTJJT", "QQQJA"
+                )
+            )
     }
 
     @Test
     fun jokerIndividualIsLowest() {
         val handBids = listOf(HandBid("JKKK2".toHand(), 100), HandBid("QQQQ2".toHand(), 200))
         assertThat(handBids.sortedWith(Joker()).map { it.hand.toString() })
-            .isEqualTo(listOf(
-                "JKKK2", "QQQQ2"
-            ))
+            .isEqualTo(
+                listOf(
+                    "JKKK2", "QQQQ2"
+                )
+            )
     }
 
     @Test
@@ -88,13 +104,15 @@ class Day7Test {
         }
 
         assertThat(hands)
-            .isEqualTo(listOf(
-                "32T3K".toHand(),
-                "KK677".toHand(),
-                "T55J5".toHand(),
-                "QQQJA".toHand(),
-                "KTJJT".toHand()
-            ))
+            .isEqualTo(
+                listOf(
+                    "32T3K".toHand(),
+                    "KK677".toHand(),
+                    "T55J5".toHand(),
+                    "QQQJA".toHand(),
+                    "KTJJT".toHand()
+                )
+            )
 
     }
 }
