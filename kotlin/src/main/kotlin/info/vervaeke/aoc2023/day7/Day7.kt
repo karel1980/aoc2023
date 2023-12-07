@@ -23,13 +23,13 @@ enum class Face(val symbol: String) {
 }
 
 enum class HandType {
-    FIVE,
-    FOUR,
-    FULL,
-    THREE,
-    TWO_PAIR,
+    HIGH,
     PAIR,
-    HIGH
+    TWO_PAIR,
+    THREE,
+    FULL,
+    FOUR,
+    FIVE,
 }
 
 data class Hand(val faces: List<Face>) : Comparable<Hand> {
@@ -60,7 +60,6 @@ data class Hand(val faces: List<Face>) : Comparable<Hand> {
     }
 
 
-
     override fun compareTo(other: Hand): Int {
         // compare comobinations
         if (this.handType() != other.handType()) {
@@ -70,14 +69,25 @@ data class Hand(val faces: List<Face>) : Comparable<Hand> {
         // compare faces
         faces.zip(other.faces).forEachIndexed { idx, it ->
             if (it.first != it.second) {
-                return -it.first.compareTo(it.second)
+                return it.first.compareTo(it.second)
             }
         }
         return 0
     }
 
     override fun toString(): String {
-        return faces.joinToString("") { it.symbol}
+        return faces.joinToString("") { it.symbol }
+    }
+
+    fun bestHandType(): HandType {
+        return Face.entries.map { jokerFace ->
+            val altFaces = faces.map {
+                if (it == Face.JACK) {
+                    jokerFace
+                } else it
+            }
+            Hand(altFaces)
+        }.map { it.handType() }.max()
     }
 }
 
@@ -97,7 +107,6 @@ class Day7(val handBids: List<HandBid>) {
 
     fun totalWinnings(): Int {
         val sortedHands = handBids.sortedBy { it.hand }
-            .reversed()
         sortedHands.forEach {
             println(it)
         }
@@ -109,10 +118,44 @@ class Day7(val handBids: List<HandBid>) {
 
     }
 
-    fun part2(): Long {
-        return 42
+    fun part2(): Int {
+        val sortedHands = handBids.sortedWith(Joker())
+        sortedHands.forEach {
+            println(it)
+        }
+        return sortedHands
+            .mapIndexed { idx, it ->
+                (idx + 1) * it.bidValue
+            }
+            .sum()
     }
 
+}
+
+class Joker : Comparator<HandBid> {
+    override fun compare(o1: HandBid, o2: HandBid): Int {
+        return compareHand(o1.hand, o2.hand)
+    }
+
+    private fun compareHand(left: Hand, right: Hand): Int {
+        if (left.bestHandType() != right.bestHandType()) {
+            return left.bestHandType().compareTo(right.bestHandType())
+        }
+
+        // compare faces
+        left.faces.zip(right.faces).forEachIndexed { idx, it ->
+            if (it.first != it.second) {
+                if (it.first == Face.JACK) {
+                    return -1
+                }
+                if (it.second == Face.JACK) {
+                    return 1
+                }
+                return it.first.compareTo(it.second)
+            }
+        }
+        return 0
+    }
 }
 
 private fun String.toHandBid(): HandBid {
@@ -129,5 +172,6 @@ fun String.toHand() = Hand(map {
 fun main() {
     val day7 = Day7.parseInput("input")
     println("Part 1: ${day7.part1()}")
+    //250731217 is too low
     println("Part 2: ${day7.part2()}")
 }
