@@ -34,6 +34,10 @@ enum class HandType {
 
 data class Hand(val faces: List<Face>) : Comparable<Hand> {
 
+    constructor(spec: String) : this(spec.map {
+        Face.ofSymbol(it.toString())
+    })
+
     fun handType(): HandType {
         val counts = faces.groupBy { it }.mapValues { it.value.size }
         if (counts.values.max() == 5) {
@@ -158,12 +162,8 @@ private fun String.toHandBid(): HandBid {
     val parts = this.split(" ")
     val bidValue = parts[1].toInt()
 
-    return HandBid(parts[0].toHand(), bidValue)
+    return HandBid(Hand(parts[0]), bidValue)
 }
-
-fun String.toHand() = Hand(map {
-    Face.ofSymbol(it.toString())
-}.toList())
 
 fun main() {
     val day7 = Day7.parseInput("input")
