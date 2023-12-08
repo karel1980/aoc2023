@@ -1,5 +1,7 @@
 package info.vervaeke.aoc2023.day8
 
+import java.math.BigInteger
+
 data class Node(val left: String, val right: String)
 
 data class Day8(val instructions: String, val nodesById: Map<String, Node>) {
@@ -30,7 +32,7 @@ data class Day8(val instructions: String, val nodesById: Map<String, Node>) {
         var current = start;
 
         while (current != end) {
-            current = nextLocation(current, distance%instructions.length)
+            current = nextLocation(current, distance % instructions.length)
             distance++
         }
         return distance
@@ -46,44 +48,54 @@ data class Day8(val instructions: String, val nodesById: Map<String, Node>) {
         }
     }
 
-    fun part2(): Long {
-        var currentNodes = nodesById.keys.filter { it.endsWith("A") }
-        var distance = 0L
-        var offset = 0;
+    fun part2(): BigInteger {
+        val startNodes = nodesById.keys.filter { it.endsWith("A") }
 
-        while (!currentNodes.all { it.endsWith("Z") }) {
-            if (distance < 10) {
-                println(currentNodes)
-                println(instructions[offset])
+        val cycles = buildList {
+            startNodes.forEach {
+                val cycleLength = cycleUntilNodeEndingWithZ(it)
+                add(BigInteger.valueOf(cycleLength.toLong()))
             }
-            currentNodes = currentNodes.map {
-                nextLocation(it, offset)
-            }
-            distance++
-            offset++
-            offset %= instructions.length
         }
 
-        return distance
+        return findLCM(cycles)
     }
 
-    fun cycle(start: String): Int {
+    fun cycleUntilNodeEndingWithZ(start: String): Int {
         var distance = 0;
         var current = start;
 
         while (!current.endsWith("Z")) {
-            current = nextLocation(current, distance%instructions.length)
+            current = nextLocation(current, distance % instructions.length)
             distance++
         }
         return distance
     }
 
+
 }
 
+// chatgpt
+fun findLCM(numbers: List<BigInteger>): BigInteger {
+    if (numbers.isEmpty()) {
+        throw IllegalArgumentException("List cannot be empty")
+    }
+
+    var lcm = numbers[0].abs()
+
+    for (i in 1 until numbers.size) {
+        lcm = lcm(lcm, numbers[i])
+    }
+
+    return lcm
+}
+
+fun lcm(a: BigInteger, b: BigInteger): BigInteger {
+    return a.multiply(b).divide(a.gcd(b))
+}
 
 fun main() {
     val day = Day8.parseInput("input")
     println("Part 1: ${day.part1()}")
-    // 31287194289918716640809369 is too high
     println("Part 2: ${day.part2()}")
 }
