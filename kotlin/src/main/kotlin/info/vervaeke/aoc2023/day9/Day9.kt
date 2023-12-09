@@ -17,7 +17,7 @@ data class Day9(val input: List<List<Int>>) {
     }
 
     fun part2(): Int {
-        return 42
+        return input.sumOf { findPreviousValue(it) }
     }
 
     fun findNextValue(line: List<Int>): Int {
@@ -32,6 +32,31 @@ data class Day9(val input: List<List<Int>>) {
 //        println(lines)
 
         return lines.sumOf { it.last() }
+    }
+
+    fun findPreviousValue(line: List<Int>) : Int {
+        var current = line
+        val lines = buildList {
+            add(current)
+            while (!current.all { it == 0 }) {
+                current = (0 until current.size - 1).map { current[it + 1] - current[it] }
+                add(current)
+            }
+        }
+
+//        lines.forEach {
+//            println(it)
+//        }
+
+        var value = lines.last().first()
+        lines.indices.drop(1).reversed().map {
+//            print("line $it: lines[it]")
+//            print("line $it -0 1: lines[it]")
+//            println(value)
+            value = lines[it-1].first() - value
+        }
+
+        return value
     }
 
 
