@@ -40,12 +40,12 @@ data class Day10(val grid: List<String>) {
     }
 
     fun part1(): Int {
-        return (findLoop().size + 1)/ 2
+        return (findLoop().size + 1) / 2
     }
 
     fun findLoop(): List<Coord> {
         var current: Coord = findSCoord()
-        val loop = mutableListOf<Coord>()
+        val loop = mutableSetOf<Coord>()
 
         var done = false
         while (!done) {
@@ -56,6 +56,7 @@ data class Day10(val grid: List<String>) {
             } else {
                 val next = current + dir
                 loop.add(current)
+                loop.add(next)
                 current = next
             }
         }
@@ -97,7 +98,98 @@ data class Day10(val grid: List<String>) {
     }
 
     fun part2(): Int {
-        return 42
+        return enclosedInLoop(findLoop())
+    }
+
+    fun enclosedInLoop(loop: List<Coord>): Int {
+        // blow up coordinates
+        val doubleLoop = loop.map { Coord(it.row * 2, it.col * 2) }.toMutableSet()
+
+        loop.forEach {
+            val here = Coord(it.row * 2, it.col * 2)
+            when (symbol(it)) {
+                "L" -> {
+                    doubleLoop.add(here + EAST)
+                    doubleLoop.add(here + NORTH)
+                }
+
+                "F" -> {
+                    doubleLoop.add(here + EAST)
+                    doubleLoop.add(here + SOUTH)
+                }
+
+                "J" -> {
+                    doubleLoop.add(here + WEST)
+                    doubleLoop.add(here + NORTH)
+                }
+
+                "7" -> {
+                    doubleLoop.add(here + WEST)
+                    doubleLoop.add(here + SOUTH)
+                }
+
+                "-" -> {
+                    doubleLoop.add(here + EAST)
+                    doubleLoop.add(here + WEST)
+                }
+
+                "|" -> {
+                    doubleLoop.add(here + NORTH)
+                    doubleLoop.add(here + SOUTH)
+                }
+
+                else -> {
+                    println("found $it")
+                }
+            }
+        }
+
+        val offsetLoop = doubleLoop.map { Coord(it.row + 2, it.col + 2) }
+        val rows = offsetLoop.maxOf { it.row } + 2
+        val cols = offsetLoop.maxOf { it.col } + 2
+        val grid = (0..rows).map {
+            (0..cols).map { "." }.toMutableList()
+        }
+
+        // now paint doubleLoop on a grid
+        offsetLoop.forEach {
+            grid[it.row][it.col] = "#"
+        }
+//        printGrid(grid)
+        // flood fill it
+        floodFill(grid)
+//        printGrid(grid)
+
+        // now count the dots that are on even positions
+        return (0 until grid.size step 2).sumOf {row ->
+            (0 until grid[0].size step 2).count { col -> grid[row][col] == "." }
+        }
+    }
+
+    private fun floodFill(grid: List<MutableList<String>>) {
+
+        val toVisit = mutableSetOf(Coord(0, 0))
+
+        while (!toVisit.isEmpty()) {
+            val current = toVisit.take(1)[0]
+            grid[current.row][current.col] = "#"
+            toVisit.remove(current)
+
+            NESW.map { current + it }
+                .filter { it.row in 0 until grid.size }
+                .filter { it.col in 0 until grid[0].size }
+                .filter { grid[it.row][it.col] != "#" }
+                .forEach {
+                    toVisit.add(it)
+                }
+        }
+
+    }
+
+    fun printGrid(grid: Iterable<Iterable<String>>) {
+        grid.forEach {
+            println(it.joinToString(""))
+        }
     }
 
 }

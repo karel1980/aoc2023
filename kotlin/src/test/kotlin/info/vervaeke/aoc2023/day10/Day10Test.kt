@@ -27,7 +27,29 @@ class Day10Test {
 
     @Test
     fun part2() {
-        Assertions.assertThat(day10.part2())
-            .isEqualTo(42)
+        Assertions.assertThat(Day10.parseInput("sample2").part2())
+            .isEqualTo(4)
+
+    }
+
+    @Test
+    fun part2b() {
+        Assertions.assertThat(Day10.parseInput("sample2b").part2())
+            .isEqualTo(4)
+
+    }
+
+    @Test
+    fun part2_3() {
+        Assertions.assertThat(Day10.parseInput("sample3").part2())
+            .isEqualTo(8)
+
+    }
+
+    @Test
+    fun part2_4() {
+        Assertions.assertThat(Day10.parseInput("sample4").part2())
+            .isEqualTo(10)
+
     }
 }
