@@ -1,6 +1,7 @@
 package info.vervaeke.aoc2023.day12
 
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class Day12Test {
@@ -9,13 +10,13 @@ class Day12Test {
 
     @Test
     fun part1() {
-        Assertions.assertThat(day12.part1())
+        assertThat(day12.part1())
             .isEqualTo(42)
     }
 
     @Test
     fun part2() {
-        Assertions.assertThat(day12.part2())
+        assertThat(day12.part2())
             .isEqualTo(42)
     }
 }
