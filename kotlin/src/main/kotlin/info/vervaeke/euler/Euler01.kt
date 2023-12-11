@@ -4,7 +4,8 @@ fun main() {
 //    println("Euler 1 ${euler01()}")
 //    println("Euler 2 ${euler02()}")
 //    println("Euler 3 ${euler03()}")
-    println("Euler 4 ${euler04()}")
+//    println("Euler 4 ${euler04()}")
+    println("Euler 5 ${euler05()}")
 }
 
 private fun euler01() = (0 until 1000).filter { it % 3 == 0 || it % 5 == 0 }.sum()
@@ -40,8 +41,22 @@ private fun euler03(): Long {
 }
 
 private fun euler04(): Int {
-    return (100 until 1000).flatMap { a ->
-        (100 until 1000).map { b -> a * b }
-    }.filter { it.toString() == it.toString().reversed() }
+    return (100 until 1000)
+        .flatMap { a -> (100 until 1000).map { b -> a * b } }
+        .filter { it.toString() == it.toString().reversed() }
         .max()
+}
+
+private fun euler05(): Long {
+    return euler05(20)
+}
+
+private fun euler05(d: Long):Long {
+    var r = 1L
+    while (true) {
+        if ((1 until d).all { r%it == 0L }) {
+            return r
+        }
+        r++
+    }
 }
