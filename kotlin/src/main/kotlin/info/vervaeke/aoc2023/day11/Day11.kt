@@ -40,39 +40,22 @@ data class Day11(val grid: List<String>) {
             galaxies.sumOf { b ->
                 distance(a, b, emptySpace)
             }
-        } / 2
+        } / 2 // counting all pairs results in every distance being counted twice
     }
 
     fun distance(a: Coord, b: Coord, emptySpace: Long = 2): Long {
         val d = abs(b.col - a.col) + abs(b.row - a.row)
 
-        val rplus = (min(a.row, b.row) until max(a.row, b.row)).count { it in emptyRows }
-        val cplus = (min(a.col, b.col) until max(a.col, b.col)).count { it in emptyCols }
+        val emptyRowsCrossed = (min(a.row, b.row) until max(a.row, b.row)).count { it in emptyRows }
+        val emptyColsCrossed = (min(a.col, b.col) until max(a.col, b.col)).count { it in emptyCols }
 
-        return d.toLong() + rplus * (emptySpace - 1) + cplus * (emptySpace - 1)
-    }
-
-    fun emptyRows(): List<Int> {
-        return rows.filter {
-            '#' !in grid[it]
-        }
-    }
-
-    fun emptyCols(): List<Int> {
-        return cols.filter { col ->
-            rows.all { grid[it][col] != '#' }
-        }
+        return d.toLong() + emptyRowsCrossed * (emptySpace - 1) + emptyColsCrossed * (emptySpace - 1)
     }
 
     fun findGalaxies(): List<Coord> {
-        return buildList {
-            rows.forEach { row ->
-                cols.forEach { col ->
-                    if (grid[row][col] == '#') {
-                        add(Coord(row, col))
-                    }
-                }
-            }
+        return rows.flatMap { row ->
+            cols.filter { col -> grid[row][col] == '#' }
+                .map { Coord(row, it) }
         }
     }
 

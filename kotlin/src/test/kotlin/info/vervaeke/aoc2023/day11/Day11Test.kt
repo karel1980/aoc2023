@@ -28,13 +28,13 @@ class Day11Test {
 
     @Test
     fun emptyRows() {
-        assertThat(day11.emptyRows())
+        assertThat(day11.emptyRows)
             .isEqualTo(listOf(3, 7))
     }
 
     @Test
     fun emptyCols() {
-        assertThat(day11.emptyCols())
+        assertThat(day11.emptyCols)
             .isEqualTo(listOf(2, 5, 8))
     }
 
