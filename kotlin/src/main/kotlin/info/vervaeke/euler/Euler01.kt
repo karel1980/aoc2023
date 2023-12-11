@@ -1,12 +1,15 @@
 package info.vervaeke.euler
 
+import com.google.common.math.LongMath.isPrime
+
 fun main() {
 //    println("Euler 1 ${euler01()}")
 //    println("Euler 2 ${euler02()}")
 //    println("Euler 3 ${euler03()}")
 //    println("Euler 4 ${euler04()}")
 //    println("Euler 5 ${euler05()}")
-    println("Euler 5 ${euler06()}")
+//    println("Euler 6 ${euler06()}")
+    println("Euler 7 ${euler07()}")
 }
 
 private fun euler01() = (0 until 1000).filter { it % 3 == 0 || it % 5 == 0 }.sum()
@@ -42,10 +45,7 @@ private fun euler03(): Long {
 }
 
 private fun euler04(): Int {
-    return (100 until 1000)
-        .flatMap { a -> (100 until 1000).map { b -> a * b } }
-        .filter { it.toString() == it.toString().reversed() }
-        .max()
+    return (100 until 1000).flatMap { a -> (100 until 1000).map { b -> a * b } }.filter { it.toString() == it.toString().reversed() }.max()
 }
 
 private fun euler05(): Long {
@@ -69,3 +69,19 @@ fun euler06(): Long {
 
     return b - a
 }
+
+fun euler07(): Long {
+    val nr = 10001L
+
+    var n = 2L
+
+    var primeNr = 0L
+    while (primeNr < nr) {
+        if (isPrime(n)) {
+            primeNr++
+        }
+        n++
+    }
+    return n - 1
+}
+
