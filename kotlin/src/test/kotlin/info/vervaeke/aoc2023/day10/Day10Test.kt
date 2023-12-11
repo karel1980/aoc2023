@@ -14,8 +14,8 @@ class Day10Test {
     }
 
     @Test
-    fun findSCoord() {
-        Assertions.assertThat(day10.findSCoord())
+    fun start() {
+        Assertions.assertThat(day10.start)
             .isEqualTo(Coord(2,0))
     }
 
@@ -23,6 +23,12 @@ class Day10Test {
     fun part1() {
         Assertions.assertThat(day10.part1())
             .isEqualTo(8)
+    }
+
+    @Test
+    fun part2_babysample() {
+        Assertions.assertThat(Day10.parseInput("babysample").part2())
+            .isEqualTo(1)
     }
 
     @Test

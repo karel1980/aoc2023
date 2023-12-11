@@ -10,6 +10,22 @@ data class Coord(val row: Int, val col: Int) {
     infix operator fun plus(direction: Direction): Coord {
         return Coord(row + direction.drow, col + direction.dcol)
     }
+
+    fun north(): Coord {
+        return this + NORTH
+    }
+
+    fun south(): Coord {
+        return this + SOUTH
+    }
+
+    fun east(): Coord {
+        return this + EAST
+    }
+
+    fun west(): Coord {
+        return this + WEST
+    }
 }
 
 data class Direction(val drow: Int, val dcol: Int) {
@@ -30,6 +46,10 @@ data class Direction(val drow: Int, val dcol: Int) {
 data class Day10(val grid: List<String>) {
     val rows = grid.size
     val cols = grid[0].length
+    val fixedGrid = grid.map {
+        it to it.map { it.toString() }.toMutableList()
+    }
+    val start = findSCoord()
 
     companion object {
         fun parseInput(path: String) = parseLines(readInput(path))
@@ -44,7 +64,7 @@ data class Day10(val grid: List<String>) {
     }
 
     fun findLoop(): List<Coord> {
-        var current: Coord = findSCoord()
+        var current: Coord = start
         val loop = mutableSetOf<Coord>()
 
         var done = false
@@ -82,8 +102,38 @@ data class Day10(val grid: List<String>) {
     }
 
     fun symbol(coord: Coord): String {
-        return grid[coord.row][coord.col].toString()
+        if (coord.row !in 0 until rows || coord.col !in 0 until cols) {
+            return "."
+        } else {
+            return grid[coord.row][coord.col].toString()
+        }
     }
+
+    fun fixedSymbol(coord: Coord, loop: List<Coord>): String {
+        if (coord !in loop) {
+            return "."
+        }
+        val idx = loop.indexOf(coord)
+        val next = loop[(idx + 1) % loop.size]
+        val prev = loop[(idx + loop.size - 1) % loop.size]
+        val dirs = buildSet {
+            NESW.forEach {
+                if (coord + it == next) add(it)
+                if (coord + it == prev) add(it)
+            }
+        }
+        return when (dirs) {
+            setOf(EAST, WEST) -> "-"
+            setOf(NORTH, SOUTH) -> "|"
+            setOf(EAST, NORTH) -> "L"
+            setOf(EAST, SOUTH) -> "F"
+            setOf(WEST, NORTH) -> "J"
+            setOf(WEST, SOUTH) -> "7"
+            else -> TODO()
+        }
+
+    }
+
 
     private fun inGrid(coord: Coord): Boolean {
         return coord.row in 0 until rows && coord.col in 0 until cols
@@ -98,7 +148,60 @@ data class Day10(val grid: List<String>) {
     }
 
     fun part2(): Int {
+        return part2_floodfill_doublegrid()
+//        return part2_raycast()
+    }
+
+    fun part2_floodfill_doublegrid(): Int {
         return enclosedInLoop(findLoop())
+    }
+
+    fun part2_raycast(): Int {
+        val loop = findLoop()
+
+        val result = (0 until rows).sumOf { row ->
+            cellsInsideLoop(row, loop)
+        }
+        return result
+    }
+
+    /* grid that only contains the loop. everything else is set to '.' */
+    private fun createCleanGrid(loop: Set<Coord>): List<MutableList<String>> {
+        val cleanGrid = grid.map { ".".repeat(cols).map { it.toString() }.toMutableList() }
+        loop.forEach {
+            cleanGrid[it.row][it.col] = symbol(it)
+        }
+        return cleanGrid
+    }
+
+    private fun cellsInsideLoop(row: Int, loop: List<Coord>): Int {
+        return (0 until cols)
+            .sumOf { col ->
+                oneIfInsideLoop(row, col, loop)
+            }
+    }
+
+    private fun oneIfInsideLoop(row: Int, col: Int, loop: List<Coord>) =
+        if (isInsideLoop(Coord(row, col), loop)) {
+            1
+        } else {
+            0
+        }
+
+    private fun isInsideLoop(coord: Coord, loop: List<Coord>): Boolean {
+        if (fixedSymbol(coord, loop) != ".") {
+            return false
+        }
+        val countWallsRight = (coord.col + 1 until cols).map {
+            Coord(coord.row, it)
+        }.filter {
+            it in loop
+        }.count {
+            val symbol = fixedSymbol(it, loop)
+            symbol in "|7F"
+        }
+        val isInside = countWallsRight % 2 == 1
+        return isInside
     }
 
     fun enclosedInLoop(loop: List<Coord>): Int {
@@ -107,7 +210,8 @@ data class Day10(val grid: List<String>) {
 
         loop.forEach {
             val here = Coord(it.row * 2, it.col * 2)
-            when (symbol(it)) {
+            val symbol = fixedSymbol(it, loop)
+            when (symbol) {
                 "L" -> {
                     doubleLoop.add(here + EAST)
                     doubleLoop.add(here + NORTH)
@@ -139,7 +243,7 @@ data class Day10(val grid: List<String>) {
                 }
 
                 else -> {
-                    println("found $it")
+                    println("found $symbol at $it")
                 }
             }
         }
@@ -161,7 +265,7 @@ data class Day10(val grid: List<String>) {
 //        printGrid(grid)
 
         // now count the dots that are on even positions
-        return (0 until grid.size step 2).sumOf {row ->
+        return (0 until grid.size step 2).sumOf { row ->
             (0 until grid[0].size step 2).count { col -> grid[row][col] == "." }
         }
     }
@@ -194,6 +298,16 @@ data class Day10(val grid: List<String>) {
 
 }
 
+fun String.connections() = when (this) {
+    "S" -> TODO()
+    "J" -> setOf(EAST, NORTH)
+    "F" -> setOf(EAST, SOUTH)
+    "L" -> setOf(WEST, NORTH)
+    "7" -> setOf(WEST, SOUTH)
+    "-" -> setOf(EAST, WEST)
+    "|" -> setOf(NORTH, SOUTH)
+    else -> setOf()
+}
 
 fun main() {
     val day = Day10.parseInput("input")
