@@ -1,6 +1,7 @@
 package info.vervaeke.aoc2023.day13
 
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class Day13Test {
@@ -8,19 +9,68 @@ class Day13Test {
 
     @Test
     fun parse() {
-        Assertions.assertThat(day13)
-            .isEqualTo(Day13(listOf("sample")))
+        assertThat(day13.grids.size)
+            .isEqualTo(2)
+        assertThat(day13.grids[0].lines[0])
+            .isEqualTo("#.##..##.")
+    }
+
+    @Test
+    fun real() {
+        val real = Day13.parseInput("input")
+        println(real.grids.size)
+
+        real.grids.forEach {
+            println("Horizontal ${it.horizontalReflection()} / Vertical ${it.verticalReflection()} ")
+        }
+    }
+
+    @Test
+    fun horizontalReflection() {
+        assertThat(day13.grids[1].horizontalReflection())
+            .isEqualTo(4)
+    }
+
+    @Test
+    fun verticalReflection() {
+        assertThat(day13.grids[0].verticalReflection())
+            .isEqualTo(5)
+    }
+
+    @Test
+    fun edges() {
+        val edgecases = Day13.parseInput("edgecases")
+//        assertThat(edgecases.grids[0].horizontalReflection())
+//            .isEqualTo(1)
+        assertThat(edgecases.grids[1].horizontalReflection())
+            .isEqualTo(3)
+    }
+
+    @Test
+    fun getRange() {
+        assertThat(day13.grids[1].getRange(1))
+            .isEqualTo(0 to 2)
+        assertThat(day13.grids[1].getRange(2))
+            .isEqualTo(0 to 4)
+        assertThat(day13.grids[1].getRange(3))
+            .isEqualTo(0 to 6)
+        assertThat(day13.grids[1].getRange(4))
+            .isEqualTo(1 to 7)
+        assertThat(day13.grids[1].getRange(5))
+            .isEqualTo(3 to 7)
+        assertThat(day13.grids[1].getRange(6))
+            .isEqualTo(5 to 7)
     }
 
     @Test
     fun part1() {
-        Assertions.assertThat(day13.part1())
-            .isEqualTo(42L)
+        assertThat(day13.part1())
+            .isEqualTo(405)
     }
 
     @Test
     fun part2() {
-        Assertions.assertThat(day13.part2())
+        assertThat(day13.part2())
             .isEqualTo(42L)
     }
 }

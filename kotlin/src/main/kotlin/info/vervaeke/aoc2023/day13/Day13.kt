@@ -1,16 +1,58 @@
 package info.vervaeke.aoc2023.day13
 
-data class Day13(val grid: List<String>) {
+
+data class Grid(val lines: List<String>) {
+    fun rotate(): Grid {
+        val rows= lines.size
+        val cols = lines[0].length
+
+        return Grid((0 until cols).map { col ->
+            (0 until rows).map { row ->
+                lines[row][col]
+            }.joinToString("")
+        })
+    }
+
+    fun horizontalReflection(): Int? {
+        (1 until lines.size).map {
+            val range = getRange(it)
+
+            val low = lines.subList(range.first, it)
+            val high = lines.subList(it, range.second).reversed()
+            if (low == high) {
+                return it
+            }
+        }
+        return null
+    }
+
+    fun verticalReflection() = rotate().horizontalReflection()
+
+    fun getRange(it: Int) = if (it < lines.size / 2 + 1) {
+        0 to 2 * it
+    } else {
+        val l = lines.size - it - 1
+        it - 1 - l to lines.size
+    }
+
+}
+
+data class Day13(val grids: List<Grid>) {
     companion object {
         fun parseInput(path: String) = parseLines(readInput(path))
         fun readInput(path: String) = javaClass.getResource(path)!!.readText().lines()
         fun parseLines(lines: List<String>): Day13 {
-            return Day13(lines)
+            val stops = lines.indices.filter { lines[it] == "" }
+            return Day13((listOf(-1) + stops).zip(stops + listOf(lines.size)).map {
+                Grid(lines.subList(it.first + 1, it.second))
+            })
         }
     }
 
-    fun part1(): Long {
-        return 42L
+    fun part1(): Int {
+        val hSum = grids.map { it.horizontalReflection() }.filterNotNull().sum()
+        val vSum = grids.map { it.verticalReflection() }.filterNotNull().sum()
+        return hSum * 100 + vSum
     }
 
     fun part2(): Long {
@@ -20,6 +62,7 @@ data class Day13(val grid: List<String>) {
 
 fun main() {
     val day = Day13.parseInput("input")
+    //11344 is too low
     println("Part 1: ${day.part1()}")
     println("Part 2: ${day.part2()}")
 }
