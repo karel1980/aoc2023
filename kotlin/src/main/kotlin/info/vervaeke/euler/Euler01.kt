@@ -162,12 +162,12 @@ fun euler11(): Long {
     var best = 0L;
     (0 until rows - n).forEach { row ->
         (0 until cols - n).forEach { col ->
-            val h = product((0..n).map { grid[row][col + it] }.map { it.toLong() })
-            val v = product((0..n).map { grid[row + it][col] }.map { it.toLong() })
-            val d1 = product((0..n).map { grid[row + it][col + it] }.map { it.toLong() })
-//            val d2 = product((0..n).map { grid[row + n - it][col + it] }.map { it.toLong() })
+            val h = product((0 until n).map { grid[row][col + it] }.map { it.toLong() })
+            val v = product((0 until n).map { grid[row + it][col] }.map { it.toLong() })
+            val d1 = product((0 until n).map { grid[row + it][col + it] }.map { it.toLong() })
+            val d2 = product((0 until n).map { grid[row + n - it][col + it] }.map { it.toLong() })
 
-            val m = listOf(h, v, d1).max()
+            val m = listOf(h, v, d1, d2).max()
             if (m > best) {
                 best = m
             }
