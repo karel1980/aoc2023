@@ -34,12 +34,24 @@ data class Grid(val lines: List<String>) {
 
     fun horizontalReflection(exclude: Int? = null): Int? {
         (1 until lines.size).map {
-            val range = getRange(it)
+            if (it == exclude) {
+                return@map
+            }
+            val top = lines.subList(0, it).reversed()
+            val bottom = lines.subList(it, lines.size)
 
-            val low = lines.subList(range.first, it)
-            val high = lines.subList(it, range.second).reversed()
-            if (it != exclude && low == high) {
-                return it
+            if (top.isEmpty() || bottom.isEmpty()) {
+                TODO("check boundaries")
+            }
+            if (top.size <= bottom.size) {
+                if (top == bottom.subList(0, top.size)) {
+                    return it
+                }
+            }
+            if (top.size > bottom.size) {
+                if (top.subList(0, bottom.size) == bottom) {
+                    return it
+                }
             }
         }
         return null
@@ -70,19 +82,8 @@ data class Grid(val lines: List<String>) {
             }
         }
 
-        lines.forEach {
-            println(it)
-        }
         TODO("Did not find a different line of reflection")
     }
-
-    fun getRange(it: Int) = if (it < lines.size / 2 + 1) {
-        0 to 2 * it
-    } else {
-        val l = lines.size - it - 1
-        it - 1 - l to lines.size
-    }
-
 }
 
 data class Day13(val grids: List<Grid>) {
@@ -102,10 +103,7 @@ data class Day13(val grids: List<Grid>) {
     }
 
     fun part2(): Int {
-        return grids.sumOf {
-            println(it.part2Score())
-            it.part2Score()
-        }
+        return grids.sumOf { it.part2Score() }
     }
 }
 
