@@ -83,9 +83,6 @@ data class Day15(val lines: List<String>, val instructions: List<Instruction>, v
         instructions.forEach {
             machine.execute(it)
         }
-        machine.boxes.forEach {
-            println(it)
-        }
         return machine.focusingPower()
     }
 
