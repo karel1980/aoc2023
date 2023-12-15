@@ -9,12 +9,12 @@ class Day15Test {
     @Test
     fun part1() {
         assertThat(sample.part1())
-            .isEqualTo(42)
+            .isEqualTo(1320)
     }
 
     @Test
     fun part2() {
         assertThat(sample.part2())
-            .isEqualTo(42)
+            .isEqualTo(145)
     }
 }
