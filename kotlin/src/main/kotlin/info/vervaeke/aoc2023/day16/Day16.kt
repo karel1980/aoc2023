@@ -98,7 +98,13 @@ data class Day16(val lines: List<String>) {
     }
 
     fun part2(): Int {
-        return 42
+        val left = (0 until rows).map { Particle(Coord(it, -1), Direction.RIGHT) }
+        val right = (0 until rows).map { Particle(Coord(it, cols), Direction.LEFT) }
+        val top = (0 until cols).map { Particle(Coord(-1, it), Direction.DOWN) }
+        val bottom = (0 until cols).map { Particle(Coord(rows, it), Direction.UP) }
+        return (left + right + top + bottom).maxOf {
+            countEnergized(it)
+        }
     }
 
 }
