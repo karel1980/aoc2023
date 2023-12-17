@@ -1,5 +1,7 @@
 package info.vervaeke.aoc2023.day17
 
+import info.vervaeke.aoc2023.day17.Direction.RIGHT
+
 data class Coord(val row: Int, val col: Int) {
     infix operator fun plus(dir: Direction): Coord {
         return Coord(row + dir.drow, col + dir.dcol)
@@ -18,8 +20,7 @@ enum class Direction(val drow: Int, val dcol: Int) {
 
 }
 
-data class Node(val pos: Coord, val last3Moves: List<Direction> = listOf()) {
-}
+data class Node(val pos: Coord, val dir: Direction = Direction.RIGHT, val count: Int = 0)
 
 data class Day17(val lines: List<String>) {
     val rows = lines.size
@@ -33,8 +34,9 @@ data class Day17(val lines: List<String>) {
 
 
     fun part1(): Int {
-        // Rather slow. Improvement: Node should only contain position and its previous direction
-        // otherwise our list of possible states is super big
+        // y u so slow?
+        println("rows and cols: $rows $cols")
+
         val start = Node(Coord(0, 0))
 
         // current best score to get from start to n
@@ -46,8 +48,10 @@ data class Day17(val lines: List<String>) {
 
         val goal = Coord(rows - 1, cols - 1)
 
+        var count = 0
         while (queue.isNotEmpty()) {
             val current = queue.minBy { fScore[it] ?: 1_000_000 }
+//            println("current: $current.pos")
             if (current.pos == goal) {
                 return gScore[current] ?: 1_000_000
             }
@@ -55,6 +59,7 @@ data class Day17(val lines: List<String>) {
             queue.remove(current)
 
             val neighbours = getNeighbours(current)
+//            println("neighbours: $neighbours")
             neighbours.forEach { neighbour ->
                 val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(neighbour.pos)
                 if (tentativeGScore < (gScore[neighbour] ?: 1_000_000)) {
@@ -80,21 +85,29 @@ data class Day17(val lines: List<String>) {
     fun getNeighbours(node: Node): List<Node> {
         return Direction.entries.filter {
             // no u turns
-            node.last3Moves.isEmpty() || node.last3Moves.last().opposite != it
-        }.filter { move ->
+            it != node.dir.opposite
+        }.filter {
             // no going straight more than 3 times
-            node.last3Moves.size < 3 || !node.last3Moves.all { it == move }
+            // == only go in same directory if count < 3
+            it != node.dir || node.count < 3
         }.filter {
             // no going outside of the grid
-            node.pos.row + it.drow in 0 until rows && node.pos.col + it.dcol in 0 until cols
+            val newPos = node.pos + it
+            newPos.row in 0 until rows && newPos.col in 0 until cols
         }.map {
-            Node(node.pos + it, node.last3Moves.takeLast(2) + listOf(it))
+            Node(
+                node.pos + it, it, if (node.dir == it) {
+                    node.count + 1
+                } else {
+                    1
+                }
+            )
         }
     }
 
     fun heuristic(node: Node): Int {
         // heuristic should never overestimate
-        // use manhattan distance, as there are no 0s in the gird
+        // use manhattan distance, as there are no 0s in the grid
         return (rows - node.pos.row) + (cols - node.pos.col)
     }
 
