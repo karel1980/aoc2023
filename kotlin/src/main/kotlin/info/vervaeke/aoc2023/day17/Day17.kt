@@ -33,27 +33,23 @@ data class Day17(val lines: List<String>) {
 
 
     fun part1(): Int {
-        // Really show. Improvement: Node should only contain position and its previous direction
-        // that's enough state
+        // Rather slow. Improvement: Node should only contain position and its previous direction
+        // otherwise our list of possible states is super big
         val start = Node(Coord(0, 0))
 
+        // current best score to get from start to n
         val gScore = mutableMapOf(start to 0)
+        // current estimate to get from start to n
         val fScore = mutableMapOf(start to heuristic(start))
         val queue = mutableSetOf(start)
         val cameFrom = mutableMapOf<Node, Node>()
 
         val goal = Coord(rows - 1, cols - 1)
 
-        var nearest = 99999
-
         while (queue.isNotEmpty()) {
             val current = queue.minBy { fScore[it] ?: 1_000_000 }
-            if (heuristic(current) < nearest) {
-                println("$current $nearest")
-                nearest = heuristic(current)
-            }
             if (current.pos == goal) {
-                return gScore[current]!!
+                return gScore[current] ?: 1_000_000
             }
 
             queue.remove(current)
@@ -61,17 +57,20 @@ data class Day17(val lines: List<String>) {
             val neighbours = getNeighbours(current)
             neighbours.forEach { neighbour ->
                 val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(neighbour.pos)
-                if (tentativeGScore < gScore[neighbour] ?: 1_000_000) {
+                if (tentativeGScore < (gScore[neighbour] ?: 1_000_000)) {
                     cameFrom[neighbour] = current
                     gScore[neighbour] = tentativeGScore
                     fScore[neighbour] = tentativeGScore + heuristic(neighbour)
+                    if (neighbour.pos == goal) {
+                        println("current cheapest path from $start to $neighbour: ${gScore[neighbour]}")
+                    }
                     if (neighbour !in queue) {
                         queue.add(neighbour)
                     }
                 }
             }
         }
-        TODO("oops, we should not get here")
+        TODO("oops, could not reach the goal")
     }
 
     private fun cost(pos: Coord): Int {
@@ -100,7 +99,7 @@ data class Day17(val lines: List<String>) {
     }
 
     fun part2(): Int {
-        return 0
+        return 42
     }
 
 }
@@ -108,5 +107,5 @@ data class Day17(val lines: List<String>) {
 fun main() {
     val day = Day17.parseInput("input")
     println("Part 1: ${day.part1()}")
-    println("Part 2: ${day.part2()}")
+//    println("Part 2: ${day.part2()}")
 }

@@ -74,4 +74,10 @@ class Day17Test {
         assertThat(sample.part1())
             .isEqualTo(102)
     }
+
+    @Test
+    fun part2() {
+        assertThat(sample.part2())
+            .isEqualTo(71)
+    }
 }
