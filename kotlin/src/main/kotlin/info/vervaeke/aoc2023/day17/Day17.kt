@@ -120,6 +120,22 @@ data class Day17(val lines: List<String>) {
         }
     }
 
+    fun getNeighboursPart2(node: Node): List<Node> {
+        return Direction.entries.filter {
+            // no u turns
+            it.opposite != node.dir
+        }.filter {
+            // can't go in the same direction 2 consecutive times
+            it != node.dir
+        }.flatMap { dir ->
+            (4 .. 10).map {
+                Node(Coord(node.pos.row + dir.drow * it, node.pos.col + dir.dcol * it), dir)
+            }.filter {
+                it.pos.row in 0 until rows && it.pos.col in 0 until cols
+            }
+        }
+    }
+
     fun heuristic(node: Node): Int {
         // heuristic should never overestimate
         // use manhattan distance, as there are no 0s in the grid
@@ -127,13 +143,53 @@ data class Day17(val lines: List<String>) {
     }
 
     fun part2(): Int {
-        return 42
-    }
+        // y u so slow?
+        println("rows and cols: $rows $cols")
 
+        val start = Node(Coord(0, 0))
+
+        // current best score to get from start to n
+        val gScore = mutableMapOf(start to 0)
+        // current estimate to get from start to n
+        val fScore = mutableMapOf(start to heuristic(start))
+        val queue = mutableSetOf(start)
+        val cameFrom = mutableMapOf<Node, Node>()
+
+        val goal = Coord(rows - 1, cols - 1)
+
+        var count = 0
+        while (queue.isNotEmpty()) {
+            val current = queue.minBy { fScore[it] ?: 1_000_000 }
+//            println("current: $current.pos")
+            if (current.pos == goal) {
+                return gScore[current] ?: 1_000_000
+            }
+
+            queue.remove(current)
+
+            val neighbours = getNeighboursPart2(current)
+//            println("neighbours: $neighbours")
+            neighbours.forEach { neighbour ->
+                val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(current.pos, neighbour.pos)
+                if (tentativeGScore < (gScore[neighbour] ?: 1_000_000)) {
+                    cameFrom[neighbour] = current
+                    gScore[neighbour] = tentativeGScore
+                    fScore[neighbour] = tentativeGScore + heuristic(neighbour)
+                    if (neighbour.pos == goal) {
+                        println("current cheapest path from $start to $neighbour: ${gScore[neighbour]}")
+                    }
+                    if (neighbour !in queue) {
+                        queue.add(neighbour)
+                    }
+                }
+            }
+        }
+        TODO("oops, could not reach the goal")
+    }
 }
 
 fun main() {
     val day = Day17.parseInput("input")
     println("Part 1: ${day.part1()}")
-//    println("Part 2: ${day.part2()}")
+    println("Part 2: ${day.part2()}")
 }
