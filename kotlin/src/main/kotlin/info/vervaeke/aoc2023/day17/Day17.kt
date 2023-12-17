@@ -33,24 +33,49 @@ data class Day17(val lines: List<String>) {
 
 
     fun part1(): Int {
+        // Really show. Improvement: Node should only contain position and its previous direction
+        // that's enough state
         val start = Node(Coord(0, 0))
-        // map of best score from start to n
-        val gScore = mutableMapOf<Node, Int>()
-        gScore[start] = 0
 
+        val gScore = mutableMapOf(start to 0)
+        val fScore = mutableMapOf(start to heuristic(start))
         val queue = mutableSetOf(start)
+        val cameFrom = mutableMapOf<Node, Node>()
+
+        val goal = Coord(rows - 1, cols - 1)
+
+        var nearest = 99999
 
         while (queue.isNotEmpty()) {
-            val node = queue.first()
-            queue.remove(node)
-
-            val neighbours = getNeighbours(node)
-            neighbours.forEach {
-                queue.add(it)
+            val current = queue.minBy { fScore[it] ?: 1_000_000 }
+            if (heuristic(current) < nearest) {
+                println("$current $nearest")
+                nearest = heuristic(current)
+            }
+            if (current.pos == goal) {
+                return gScore[current]!!
             }
 
+            queue.remove(current)
+
+            val neighbours = getNeighbours(current)
+            neighbours.forEach { neighbour ->
+                val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(neighbour.pos)
+                if (tentativeGScore < gScore[neighbour] ?: 1_000_000) {
+                    cameFrom[neighbour] = current
+                    gScore[neighbour] = tentativeGScore
+                    fScore[neighbour] = tentativeGScore + heuristic(neighbour)
+                    if (neighbour !in queue) {
+                        queue.add(neighbour)
+                    }
+                }
+            }
         }
-        return 42
+        TODO("oops, we should not get here")
+    }
+
+    private fun cost(pos: Coord): Int {
+        return lines[pos.row][pos.col].toString().toInt()
     }
 
     fun getNeighbours(node: Node): List<Node> {
@@ -68,8 +93,10 @@ data class Day17(val lines: List<String>) {
         }
     }
 
-    fun heuristic(): Int {
-        return 100000 // I don't really have a good overestimating heuristic because I don't know how to deal with the 3 in a row constraint
+    fun heuristic(node: Node): Int {
+        // heuristic should never overestimate
+        // use manhattan distance, as there are no 0s in the gird
+        return (rows - node.pos.row) + (cols - node.pos.col)
     }
 
     fun part2(): Int {
@@ -80,7 +107,6 @@ data class Day17(val lines: List<String>) {
 
 fun main() {
     val day = Day17.parseInput("input")
-    //8620 is too high
     println("Part 1: ${day.part1()}")
     println("Part 2: ${day.part2()}")
 }

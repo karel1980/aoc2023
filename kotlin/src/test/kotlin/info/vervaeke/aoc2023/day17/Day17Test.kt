@@ -63,9 +63,15 @@ class Day17Test {
         assertThat(sample.getNeighbours(Node(Coord(5, 3), listOf(RIGHT, RIGHT, RIGHT))))
             .isEqualTo(
                 listOf(
-                    Node(Coord(4, 3), listOf(RIGHT, RIGHT, UP)),
-                    Node(Coord(6, 3), listOf(RIGHT, RIGHT, DOWN))
+                    Node(Coord(6, 3), listOf(RIGHT, RIGHT, DOWN)),
+                    Node(Coord(4, 3), listOf(RIGHT, RIGHT, UP))
                 )
             )
+    }
+
+    @Test
+    fun part1() {
+        assertThat(sample.part1())
+            .isEqualTo(102)
     }
 }
