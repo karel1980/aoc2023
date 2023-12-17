@@ -1,7 +1,5 @@
 package info.vervaeke.aoc2023.day17
 
-import info.vervaeke.aoc2023.day17.Direction.RIGHT
-
 data class Coord(val row: Int, val col: Int) {
     infix operator fun plus(dir: Direction): Coord {
         return Coord(row + dir.drow, col + dir.dcol)
@@ -20,7 +18,7 @@ enum class Direction(val drow: Int, val dcol: Int) {
 
 }
 
-data class Node(val pos: Coord, val dir: Direction = Direction.RIGHT, val count: Int = 0)
+data class Node(val pos: Coord, val dir: Direction? = null)
 
 data class Day17(val lines: List<String>) {
     val rows = lines.size
@@ -61,7 +59,7 @@ data class Day17(val lines: List<String>) {
             val neighbours = getNeighbours(current)
 //            println("neighbours: $neighbours")
             neighbours.forEach { neighbour ->
-                val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(neighbour.pos)
+                val tentativeGScore = (gScore[current] ?: 1_000_000) + cost(current.pos, neighbour.pos)
                 if (tentativeGScore < (gScore[neighbour] ?: 1_000_000)) {
                     cameFrom[neighbour] = current
                     gScore[neighbour] = tentativeGScore
@@ -78,30 +76,47 @@ data class Day17(val lines: List<String>) {
         TODO("oops, could not reach the goal")
     }
 
-    private fun cost(pos: Coord): Int {
-        return lines[pos.row][pos.col].toString().toInt()
+    private fun cost(a: Coord, b: Coord): Int {
+        val drow = sign(b.row - a.row)
+        val dcol = sign(b.col - a.col)
+        var n = a
+        var cost = 0
+        var c = 1
+        while (n != b) {
+            n = Coord(a.row + c * drow, a.col + c * dcol)
+            cost += cost(n)
+            c++
+        }
+        return cost
+    }
+
+    fun cost(c: Coord): Int {
+        return lines[c.row][c.col].toString().toInt()
+    }
+
+    fun sign(n: Int): Int {
+        if (n == 0) {
+            return 0
+        }
+        if (n < 0) {
+            return -1
+        }
+        return 1
     }
 
     fun getNeighbours(node: Node): List<Node> {
         return Direction.entries.filter {
             // no u turns
-            it != node.dir.opposite
+            it.opposite != node.dir
         }.filter {
-            // no going straight more than 3 times
-            // == only go in same directory if count < 3
-            it != node.dir || node.count < 3
-        }.filter {
-            // no going outside of the grid
-            val newPos = node.pos + it
-            newPos.row in 0 until rows && newPos.col in 0 until cols
-        }.map {
-            Node(
-                node.pos + it, it, if (node.dir == it) {
-                    node.count + 1
-                } else {
-                    1
-                }
-            )
+            // can't go in the same direction 2 consecutive times
+            it != node.dir
+        }.flatMap { dir ->
+            (1 until 4).map {
+                Node(Coord(node.pos.row + dir.drow * it, node.pos.col + dir.dcol * it), dir)
+            }.filter {
+                it.pos.row in 0 until rows && it.pos.col in 0 until cols
+            }
         }
     }
 
