@@ -69,7 +69,7 @@ class Day17Test {
 
     @Test
     fun part1() {
-        assertThat(sample.part1())
+        assertThat(sample.aStarSolution { n: Node -> sample.getNeighbours(n) })
             .isEqualTo(102)
     }
 
