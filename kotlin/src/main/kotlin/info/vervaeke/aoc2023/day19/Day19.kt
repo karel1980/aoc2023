@@ -147,8 +147,32 @@ data class Day19(val workflows: Map<String, Workflow>, val parts: List<Part>) {
         return result
     }
 
+//    fun part2Bis(): BigInteger {
+//        return findAccepted(workflows["in"]!!, 0, 1..4000, 1..4000, 1..4000, 1..4000)
+//    }
+//
+//    private fun findAccepted(workflow: Workflow, ruleIdx: Int, xRange: IntRange, mRange: IntRange, aRange: IntRange, sRange: IntRange): BigInteger {
+//        val rule = workflow.rules[ruleIdx]
+//        if (rule is GoTo) {
+//            if (rule.target == "R") {
+//                return BigInteger.ZERO
+//            }
+//            if (rule.target == "A") {
+//                return listOf(xRange, mRange, aRange, sRange)
+//                    .map { BigInteger.valueOf(1L + it.last - it.first) }
+//                    .foldRight(BigInteger.ONE) { a, b -> a.times(b) }
+//            }
+//            return findAccepted(workflows[rule.target]!!, 0, xRange, mRange, aRange, sRange)
+//        }
+//        if (rule is Compare) {
+//            val splitAt = if (rule.op == "<" ? rule.value+1)
+//        }
+//
+//        TODO()
+//    }
+
     private fun getChangePoints(points: List<Pair<String, Int>>) =
-        (listOf(1) + points.map { it.second } + listOf(4001).distinct()).sorted()
+        (listOf(1) + points.map { it.second } + listOf(4001)).distinct().sorted()
 
     fun pairsOf(list: List<Int>, fn: (a: Int, b: Int) -> Unit) {
         list.indices.drop(1).forEach { fn(list[it - 1], list[it]) }
