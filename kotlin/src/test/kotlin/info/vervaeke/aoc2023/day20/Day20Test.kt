@@ -24,24 +24,14 @@ class Day20Test {
             .isEqualTo(11687500L)
     }
 
-    @Test
-    fun part2() {
-        Assertions.assertThat(sample.part2())
-            .isEqualTo(42)
-    }
+//    @Test
+//    fun part2() {
+//        Assertions.assertThat(sample.part2())
+//            .isEqualTo(42)
+//    }
 
     @Test
     fun visualiseGraph() {
         real.renderDot()
-    }
-
-    @Test
-    fun cycleTest() {
-//        println(primeFactors(242733240010887L))
-        createReal().analysis()
-
-
-        Assertions.assertThat(false)
-            .isEqualTo(true)
     }
 }

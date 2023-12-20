@@ -1,10 +1,6 @@
 package info.vervaeke.aoc2023.day20
 
-import com.google.common.math.IntMath
-import com.google.common.math.LongMath
-import java.math.BigInteger
 import kotlin.math.max
-import kotlin.time.times
 
 enum class Pulse {
     LOW,
@@ -197,67 +193,54 @@ data class Day20(val modulesById: Map<String, Module>) {
         modulesById.values.flatMap { m ->
             m.targets.map { m.id to it }
         }.forEach {
-            val color = when (modulesById[it.first]!!) {
-                is FlipFlop -> "yellow"
-                is Broadcaster -> "blue"
-                is Conjunction -> "green"
-                else -> "white"
-            }
             println("${it.first} -> ${it.second}")
         }
         println("}")
     }
 
-    fun analysis(): Long {
-        reset()
+    fun part2(): Long {
         val groups = listOf(
             "jv,kt,mt,zp,rc,hj,vc,hf,nm,dh,mc,lv,tg",
             "qs,rg,vq,bs,sc,mv,gl,kf,dx,ts,ng,lh,dl",
             "jm,xv,nd,dg,tm,mh,mk,pb,tp,pf,mf,gv,km",
             "pr,pd,jp,mx,cl,hm,qb,bf,vx,ns,pn,cb,tk",
-        ).map {it.split(",")}
+        ).map { it.split(",") }
 
-        val cycles = groups.map { analyzeGroup(it) }
-        println("cycles: ")
-        println("product: " + cycles.foldRight(1L) { a,b -> a*b})
-        println("lcd    : " + leastCommonDenominator(cycles))
+        val cycles = groups.map { calculateGroupCycleLength(it) }
 
-        return -1
+        val product = cycles.foldRight(1L) { a, b -> a * b }
+        //println("product: " + product)
+        //TODO: maybe lcd?
+
+        return product
     }
 
     fun reset() {
         modulesById.values.forEach { it.reset() }
     }
 
-    private fun analyzeGroup(watch: List<String>): Long {
+    private fun calculateGroupCycleLength(watch: List<String>): Long {
+        reset()
+
         var pushes = 0
         var done = false
         var minSent = 999999L
         while (!done) {
             val sent = pushButtonOnce(watch.first())
+
             val totalSent = sent.first + sent.second
             if (totalSent < minSent) {
                 minSent = totalSent
-//                println("minimum at $pushes: $sent")
             }
 
             pushes++
-            if (sent.first + sent.second == 1L) {
-                println("exactly 1 sent $sent at $pushes")
-            }
             if (watch.all { modulesById[it]!!.isInitialState() }) {
-                println("loop size: $pushes")
+//                println("loop size: $pushes")
                 done = true
             }
         }
 
         return 1L * pushes
-    }
-
-    fun part2(): Long {
-        var pushes = 0L
-
-        TODO()
     }
 
 }
@@ -270,7 +253,7 @@ fun primeFactors(n: Long): Map<Long, Long> {
     var i = 2L
     while (i * i <= num) {
         while (num % i == 0L) {
-            factors[i] = (factors[i]?:0) + 1
+            factors[i] = (factors[i] ?: 0) + 1
             num /= i
         }
         i++
@@ -289,7 +272,7 @@ fun leastCommonDenominator(numbers: List<Long>): Long {
     for (num in numbers) {
         val factors = primeFactors(num)
         for ((factor, power) in factors) {
-            primeFactorsMap[factor] = max(primeFactorsMap[factor]?: 0L, power)
+            primeFactorsMap[factor] = max(primeFactorsMap[factor] ?: 0L, power)
         }
     }
 
@@ -305,8 +288,9 @@ fun main() {
     // 949764474
     println("Part 1: ${Day20.parseInput("input").part1()}")
 
-    // 4820936720796 is too low
-    // 242733240010887 is too low??? probably a multiple of this
-    // 485466480021774 (double that is too high)
+    // 14462810162388 is too low
+    // 242733240010887 is too low
+    // 485466480021774 is too high
+    // 243221023462303
     println("Part 2: ${Day20.parseInput("input").part2()}")
 }
