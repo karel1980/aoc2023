@@ -1,17 +1,16 @@
 package info.vervaeke.aoc2023.day20
 
+import com.google.common.math.LongMath
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import java.math.BigInteger
 
 class Day20Test {
     val sample = Day20.parseInput("sample")
     val sample2 = Day20.parseInput("sample2")
+    val real = createReal()
 
-    @Test
-    fun part2_cycleLength() {
-        Assertions.assertThat(sample2.cycleLength())
-            .isEqualTo(4)
-    }
+    private fun createReal() = Day20.parseInput("input")
 
     @Test
     fun part1_sample() {
@@ -31,4 +30,18 @@ class Day20Test {
             .isEqualTo(42)
     }
 
+    @Test
+    fun visualiseGraph() {
+        real.renderDot()
+    }
+
+    @Test
+    fun cycleTest() {
+//        println(primeFactors(242733240010887L))
+        createReal().analysis()
+
+
+        Assertions.assertThat(false)
+            .isEqualTo(true)
+    }
 }

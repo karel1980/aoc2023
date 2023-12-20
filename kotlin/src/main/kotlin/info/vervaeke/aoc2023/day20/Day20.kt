@@ -1,5 +1,11 @@
 package info.vervaeke.aoc2023.day20
 
+import com.google.common.math.IntMath
+import com.google.common.math.LongMath
+import java.math.BigInteger
+import kotlin.math.max
+import kotlin.time.times
+
 enum class Pulse {
     LOW,
     HIGH
@@ -23,6 +29,8 @@ abstract class Module(val id: String, val targets: List<String>, val inputs: Mut
     abstract fun receive(signal: Signal): List<Signal>
 
     abstract fun addInput(input: String)
+    abstract fun isInitialState(): Boolean
+    abstract fun reset()
 }
 
 enum class FlipFlopState {
@@ -44,9 +52,16 @@ data class FlipFlop(private val _id: String, private val _targets: List<String>,
         }
     }
 
+    override fun reset() {
+        state = FlipFlopState.OFF
+    }
+
     override fun addInput(input: String) {
-        println("$input inputs to $id")
         this.inputs.add(input)
+    }
+
+    override fun isInitialState(): Boolean {
+        return state == FlipFlopState.OFF
     }
 }
 
@@ -54,24 +69,31 @@ data class Conjunction(private val _id: String, private val _targets: List<Strin
     private val inputMemory = mutableMapOf<String, Pulse?>()
 
     override fun receive(signal: Signal): List<Signal> {
-//        println("I am $id")
-//        println("received $signal")
-//        println("initial state $inputMemory")
         inputMemory[signal.from] = signal.pulse
-//        println("values in memory are now ${inputMemory.values}")
-        if (inputMemory.values.all { it == Pulse.HIGH }) {
-            val result = targets.map { Signal(id, Pulse.LOW, it) }
-//            println("conjunction emitting $result")
-            return result
+        if (allHigh()) {
+            return targets.map { Signal(id, Pulse.LOW, it) }
         } else {
-            val result = targets.map { Signal(id, Pulse.HIGH, it) }
-//            println("conjunction emitting $result")
-            return result
+            return targets.map { Signal(id, Pulse.HIGH, it) }
         }
     }
 
+    fun allHigh(): Boolean {
+        return inputMemory.values.all { it == Pulse.HIGH }
+    }
+
+    fun allLow(): Boolean {
+        return inputMemory.values.all { it == Pulse.LOW }
+    }
+
+    override fun isInitialState(): Boolean {
+        return allLow()
+    }
+
+    override fun reset() {
+        inputMemory.keys.forEach { inputMemory[it] = Pulse.LOW }
+    }
+
     override fun addInput(input: String) {
-        println("$input inputs to $id")
         this.inputs.add(input)
         inputMemory[input] = Pulse.LOW
     }
@@ -83,8 +105,15 @@ data class Broadcaster(private val _id: String, private val _targets: List<Strin
     }
 
     override fun addInput(input: String) {
-        println("$input inputs to $id")
         inputs.add(input)
+    }
+
+    override fun isInitialState(): Boolean {
+        return true
+    }
+
+    override fun reset() {
+        // nothing to do
     }
 }
 
@@ -119,7 +148,7 @@ data class Day20(val modulesById: Map<String, Module>) {
         var high = 0L
 
         (0 until 1000).forEach {
-            val lowHigh = pushButton()
+            val lowHigh = pushButtonOnce("rx")
             low += lowHigh.first
             high += lowHigh.second
         }
@@ -129,48 +158,155 @@ data class Day20(val modulesById: Map<String, Module>) {
         return low * high
     }
 
-    fun cycleLength(): Long {
-        val (lowPulses, highPulses) = pushButton()
-
-        println("total low: $lowPulses, total high: $highPulses");
-
-        return lowPulses * highPulses
-    }
-
-    private fun pushButton(): Pair<Long, Long> {
+    private fun pushButtonOnce(moduleToWatch: String): Pair<Long, Long> {
         var lowPulses = 0L
         var highPulses = 0L
 
         val signals = mutableListOf(Signal("button", Pulse.LOW, "broadcaster"))
-        while (!signals.isEmpty()) {
+        while (signals.isNotEmpty()) {
             val signal = signals.removeAt(0)
 
-//            println("processing $signal")
-            if (signal.pulse == Pulse.LOW) {
-                lowPulses += 1
-            } else {
-                highPulses += 1
+            if (moduleToWatch == signal.from) {
+                if (signal.pulse == Pulse.LOW) {
+                    lowPulses += 1
+                } else {
+                    highPulses += 1
+                }
             }
 
             val toId = signal.to
             val module = modulesById[toId] ?: TODO("unknown module")
             val newSignals = module.receive(signal)
             signals.addAll(newSignals)
-
         }
+
         return Pair(lowPulses, highPulses)
     }
 
+    fun renderDot() {
+        println("digraph {")
+        modulesById.values.forEach {
+            val color = when (modulesById[it.id]!!) {
+                is FlipFlop -> "yellow"
+                is Broadcaster -> "blue"
+                is Conjunction -> "green"
+                else -> "white"
+            }
+            println("${it.id} [color=\"$color\"];")
+        }
+        modulesById.values.flatMap { m ->
+            m.targets.map { m.id to it }
+        }.forEach {
+            val color = when (modulesById[it.first]!!) {
+                is FlipFlop -> "yellow"
+                is Broadcaster -> "blue"
+                is Conjunction -> "green"
+                else -> "white"
+            }
+            println("${it.first} -> ${it.second}")
+        }
+        println("}")
+    }
+
+    fun analysis(): Long {
+        reset()
+        val groups = listOf(
+            "jv,kt,mt,zp,rc,hj,vc,hf,nm,dh,mc,lv,tg",
+            "qs,rg,vq,bs,sc,mv,gl,kf,dx,ts,ng,lh,dl",
+            "jm,xv,nd,dg,tm,mh,mk,pb,tp,pf,mf,gv,km",
+            "pr,pd,jp,mx,cl,hm,qb,bf,vx,ns,pn,cb,tk",
+        ).map {it.split(",")}
+
+        val cycles = groups.map { analyzeGroup(it) }
+        println("cycles: ")
+        println("product: " + cycles.foldRight(1L) { a,b -> a*b})
+        println("lcd    : " + leastCommonDenominator(cycles))
+
+        return -1
+    }
+
+    fun reset() {
+        modulesById.values.forEach { it.reset() }
+    }
+
+    private fun analyzeGroup(watch: List<String>): Long {
+        var pushes = 0
+        var done = false
+        var minSent = 999999L
+        while (!done) {
+            val sent = pushButtonOnce(watch.first())
+            val totalSent = sent.first + sent.second
+            if (totalSent < minSent) {
+                minSent = totalSent
+//                println("minimum at $pushes: $sent")
+            }
+
+            pushes++
+            if (sent.first + sent.second == 1L) {
+                println("exactly 1 sent $sent at $pushes")
+            }
+            if (watch.all { modulesById[it]!!.isInitialState() }) {
+                println("loop size: $pushes")
+                done = true
+            }
+        }
+
+        return 1L * pushes
+    }
+
     fun part2(): Long {
-        return 42
+        var pushes = 0L
+
+        TODO()
     }
 
 }
 
+// chatgpt
+fun primeFactors(n: Long): Map<Long, Long> {
+    var num = n
+    val factors = mutableMapOf<Long, Long>()
+
+    var i = 2L
+    while (i * i <= num) {
+        while (num % i == 0L) {
+            factors[i] = (factors[i]?:0) + 1
+            num /= i
+        }
+        i++
+    }
+
+    if (num > 1) {
+        factors[num] = factors.getOrDefault(num, 0) + 1
+    }
+
+    return factors
+}
+
+fun leastCommonDenominator(numbers: List<Long>): Long {
+    val primeFactorsMap = mutableMapOf<Long, Long>()
+
+    for (num in numbers) {
+        val factors = primeFactors(num)
+        for ((factor, power) in factors) {
+            primeFactorsMap[factor] = max(primeFactorsMap[factor]?: 0L, power)
+        }
+    }
+
+    var lcd = 1L
+    for ((factor, power) in primeFactorsMap) {
+        lcd *= Math.pow(factor.toDouble(), power.toDouble()).toLong()
+    }
+
+    return lcd
+}
+
 fun main() {
-    val day = Day20.parseInput("input")
-    //6160 is too low
-    println("Part 1: ${day.part1()}")
-    //1327053636 is too low
-    println("Part 2: ${day.part2()}")
+    // 949764474
+    println("Part 1: ${Day20.parseInput("input").part1()}")
+
+    // 4820936720796 is too low
+    // 242733240010887 is too low??? probably a multiple of this
+    // 485466480021774 (double that is too high)
+    println("Part 2: ${Day20.parseInput("input").part2()}")
 }
