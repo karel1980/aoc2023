@@ -8,8 +8,8 @@ class Day21Test {
 
     @Test
     fun part1() {
-        Assertions.assertThat(sample.part1())
-            .isEqualTo(1L)
+        Assertions.assertThat(sample.countPlots(6))
+            .isEqualTo(16)
     }
 
     @Test
