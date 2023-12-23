@@ -10,8 +10,13 @@ class Day23Test {
     @Test
     fun part1() {
         assertThat(sample.part1())
-            .isEqualTo(42)
+            .isEqualTo(94)
+    }
 
+    @Test
+    fun findAllUniquePaths() {
+        assertThat(sample.findAllUniquePaths())
+            .containsExactlyInAnyOrder(90, 86, 82, 82, 74, 94)
     }
 
     @Test
