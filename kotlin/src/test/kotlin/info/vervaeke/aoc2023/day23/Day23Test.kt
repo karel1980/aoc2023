@@ -49,11 +49,6 @@ class Day23Test {
                 }
             }
         }
-
-        // idea 1: compressing the grid to a graph. chains of nodes which have only 2 connections can be replaced by a single node
-        // this won't reduce the number of paths to examine but could speed things up
-
-        // idea 2: we're looking for the longest path between start and goal
     }
 
     @Test
@@ -65,13 +60,13 @@ class Day23Test {
 
     @Test
     fun simplifyGraph() {
-        assertThat(sample.replaceSlopes().createGraph().any {it.from == Coord(4, 3) || it.to == Coord(4, 3) })
+        assertThat(sample.replaceSlopes().createGraph().any { it.from == Coord(4, 3) || it.to == Coord(4, 3) })
             .isTrue
 
         val edges = sample.simplifyGraph(sample.createGraph())
 
         edges.forEach { println(it) }
         assertThat(edges.filter { it.from == Coord(0, 1) || it.to == Coord(0, 1) })
-            .isEqualTo(Edge(Coord(0, 1), Coord(5, 3), 15))
+            .containsExactly(Edge(Coord(0, 1), Coord(5, 3), 15))
     }
 }

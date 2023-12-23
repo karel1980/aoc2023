@@ -116,8 +116,8 @@ data class Day23(val lines: List<String>) {
             if (currentPath.size - 1 > bestOf.best) {
                 bestOf.best = currentPath.size - 1
                 println("Found a better one:" + bestOf.best)
-                results.add(currentPath.toList())
             }
+            results.add(currentPath.toList())
             return
         }
 
