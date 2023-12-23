@@ -22,7 +22,56 @@ class Day23Test {
     @Test
     fun part2() {
         assertThat(sample.part2())
-            .isEqualTo(42)
+            .isEqualTo(154)
+    }
 
+    @Test
+    fun createPosToNeighbours() {
+        sample.createPosToNeighbours().forEach { k, v ->
+            println(k)
+            v.forEach {
+                println("    $it")
+            }
+        }
+    }
+
+    @Test
+    fun analysis() {
+        val day = real.replaceSlopes()
+        (1 until day.rows - 1).forEach { r ->
+            (1 until day.cols - 1).forEach { c ->
+                val l = day.lines
+                val cs = listOf(l[r - 1][c], l[r + 1][c], l[r][c - 1], l[r][c + 1], l[r][c])
+                    .count { it == '.' }
+
+                if (cs > 3) {
+                    println(r to c)
+                }
+            }
+        }
+
+        // idea 1: compressing the grid to a graph. chains of nodes which have only 2 connections can be replaced by a single node
+        // this won't reduce the number of paths to examine but could speed things up
+
+        // idea 2: we're looking for the longest path between start and goal
+    }
+
+    @Test
+    fun createGraph() {
+        val sample = sample.createGraph()
+        assertThat(sample.find { it.from == Coord(0, 1) })
+            .isEqualTo(Edge(from = Coord(row = 0, col = 1), to = Coord(row = 1, col = 1), 1))
+    }
+
+    @Test
+    fun simplifyGraph() {
+        assertThat(sample.replaceSlopes().createGraph().any {it.from == Coord(4, 3) || it.to == Coord(4, 3) })
+            .isTrue
+
+        val edges = sample.simplifyGraph(sample.createGraph())
+
+        edges.forEach { println(it) }
+        assertThat(edges.filter { it.from == Coord(0, 1) || it.to == Coord(0, 1) })
+            .isEqualTo(Edge(Coord(0, 1), Coord(5, 3), 15))
     }
 }
