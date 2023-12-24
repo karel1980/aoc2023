@@ -9,9 +9,21 @@ class Day24Test {
     val real = Day24.parseInput("input")
 
     @Test
-    fun part1() {
-        Assertions.assertThat(sample.part1())
-            .isEqualTo(42)
+    fun parse() {
+        Assertions.assertThat(sample.stones[0])
+            .isEqualTo(Stone(19, 13, 30, -2,  1, -2))
+    }
+
+    @Test
+    fun crossPoint() {
+        Assertions.assertThat(sample.stones[0].crosspoint(sample.stones[1]))
+            .isEqualTo(Coord2d(x=14.333333333333334, y=15.333333333333334))
+    }
+
+    @Test
+    fun countInside() {
+        Assertions.assertThat(sample.countInside(7.0, 27.0))
+            .isEqualTo(2)
     }
 
     @Test
