@@ -1,5 +1,11 @@
 package info.vervaeke.aoc2023.day24
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix
+import org.apache.commons.math3.linear.MatrixUtils
+import org.apache.commons.math3.linear.RealMatrix
+import kotlin.math.max
+import kotlin.math.min
+
 data class Stone(val px: Long, val py: Long, val pz: Long, val vx: Long, val vy: Long, val vz: Long) {
     val a = 1.0 * vy
     val b = -1.0 * vx
@@ -39,11 +45,7 @@ data class Stone(val px: Long, val py: Long, val pz: Long, val vx: Long, val vy:
     }
 
     fun isInTheFuture(point: Coord2d): Boolean {
-        if (point.x > px && vx > 0 || point.x < px && vx < 0) {
-            return true
-        } else {
-            return false
-        }
+        return point.x > px && vx > 0 || point.x < px && vx < 0
     }
 
     fun format(): String {
@@ -71,12 +73,69 @@ data class Day24(val stones: List<Stone>) {
     }
 
     fun part2(): Int {
+        /*
+        *  We'll need a system of equations
+        * line P is the unknown line
+        * lines A B C are (three of) the known lines
+        *
+        * line A equations:
+        * x(t) = xa + t*vax
+        * y(t) = ya + t*vay
+        * z(t) = za + t*vaz
+        *
+        * line X crosses with line A at ta, with line B at tb and with line C at tc
+        * As 9 equations:
+        *
+        *  xa + ta*vax = xp + ta*vpx
+        *  ya + ta*vay = yp + ta*vpy
+        *  za + ta*vaz = zp + ta*vpz
+        *
+        *  xb + tb*vbx = xp + tb*vpx
+        *  yb + tb*vby = yp + tb*vpy
+        *  zb + tb*vbz = zp + tb*vpz
+        *
+        *  xc + tc*vcx = xp + tc*vpx
+        *  yc + tc*vcy = yp + tc*vpy
+        *  zc + tc*vcz = zp + tc*vpz
+        *
+        * Rather then solve these we'll assume we know vpx, vpy and vpz,
+        * assuming that these will be in a reasonable range (let's say -500..500)
+        *
+        * Now we only have 5 unknowns (ta,tb,xp,yp,zp) in the first 6 equations.
+        * Let's solve using the 5 equations and see if the results are the same for all lines
+        *
+        * ta*(vax-vpx) - xp = -xa
+        * ta*(vay-vpy) - yp = -ya
+        * ta*(vaz-vpz) - zp = -za
+        * tb*(vbx-vpx) - xp = -xb
+        * tb*(vby-vpy) - yp = -yb
+        *
+        * Matrix form: (columns are ta,tb,xp,yp,zp)
+        *
+        * A = [vax-vpx         0    -1  0   0 ]
+        *     [vay-vpy         0     0 -1   0 ]
+        *     [vaz-vpz         0     0  0  -1 ]
+        *     [      0   vbx-vpx    -1  0   0 ]
+        *     [      0   vby-vpy     0  -1  0 ]
+        *
+        * B = [ ta   tb   tc    vx    vy ]'
+        * C = [ -xa  -ya  -za  -xb   -yb ]'
+        *
+        * A*B = C -> A'*A*B = A'*C
+        *
+        * We could also write it in augmented matrix format but let's see where we get with this.
+
+        *
+         */
+
+
+
         return 42
     }
 
     fun countInside(low: Double, high: Double): Int {
         return stones.indices.sumOf { i ->
-            (i+1 until stones.size).count { j ->
+            (i + 1 until stones.size).count { j ->
                 val a = stones[i]
                 val b = stones[j]
                 println("Hailstone A: ${a.format()}")
@@ -128,8 +187,109 @@ data class Day24(val stones: List<Stone>) {
         }
     }
 
+    fun analyze(): VLimits {
+        var minVx = 0L
+        var maxVx = 0L
+        var minVy = 0L
+        var maxVy = 0L
+        var minVz = 0L
+        var maxVz = 0L
+        stones.forEach { a ->
+            stones.filter { it != a}.forEach { b ->
+                if (a.px < b.px && a.vx < 0 && b.vx > 0) {
+                    minVx = max(b.vx, minVx)
+                    maxVx = min(a.vx, maxVx)
+                }
+                if (a.py < b.py && a.vy < 0 && b.vy > 0) {
+                    minVy = max(b.vx, minVy)
+                    maxVy = min(a.vx, maxVy)
+                }
+                if (a.pz < b.pz && a.vz < 0 && b.vz > 0) {
+                    minVz = max(b.vx, minVz)
+                    maxVz = min(a.vx, maxVz)
+                }
+            }
+        }
+
+        println("vx must be <= $maxVx OR >= $minVx")
+        println("vy must be <= $maxVy OR >= $minVx")
+        println("vz must be <= $maxVz OR >= $minVz")
+
+        return VLimits(maxVx .. minVx, maxVy .. minVy, maxVz .. minVz)
+    }
+
+    fun solveUnknowns(pvx: Double, pvy: Double, pvz: Double): RealMatrix {
+        val a = stones[0]
+        val b = stones[1]
+
+        val matrixA = createMatrixA(a, b, pvx, pvy, pvz)
+        val matrixC = createMatrixC(a, b, pvx, pvy, pvz)
+
+        return MatrixUtils.inverse(matrixA).multiply(matrixC)
+    }
+
+    private fun createMatrixC(a: Stone, b: Stone, pvx: Double, pvy: Double, pvz: Double): RealMatrix {
+        return Array2DRowRealMatrix(
+            arrayOf(
+                createDoubleArray(
+                    arrayOf(
+                        -a.px.toDouble(),
+                        -a.py.toDouble(),
+                        -a.pz.toDouble(),
+                        -b.px.toDouble(),
+                        -b.py.toDouble()
+                    )
+                )
+            )
+        )
+    }
+
+    private fun createDoubleArray(data: Array<Double>): DoubleArray {
+        return data.let { row -> DoubleArray(row.size) { row[it] } }
+    }
+
+    private fun createMatrixA(
+        a: Stone, b: Stone, pvx: Double, pvy: Double, pvz: Double,
+    ): RealMatrix {
+
+        val avx = a.vx
+        val avy = a.vy
+        val avz = a.vz
+        val bvx = b.vx
+        val bvy = b.vy
+        val bvz = b.vz
+
+        val params: Array<DoubleArray> = arrayOf(
+            DoubleArray(5) { 0.0 },
+            DoubleArray(5) { 0.0 },
+            DoubleArray(5) { 0.0 },
+            DoubleArray(5) { 0.0 },
+            DoubleArray(5) { 0.0 },
+        )
+        val matrixA = Array2DRowRealMatrix(params)
+        // fill the matrix
+        matrixA.data[0][0] = avx - pvx
+        matrixA.data[0][2] = -1.0
+
+        matrixA.data[1][0] = avy - pvy
+        matrixA.data[1][3] = -1.0
+
+        matrixA.data[2][0] = avz - pvz
+        matrixA.data[2][4] = -1.0
+
+        matrixA.data[3][1] = bvx - pvx
+        matrixA.data[3][2] = -1.0
+
+        matrixA.data[3][1] = bvy - pvy
+        matrixA.data[3][3] = -1.0
+
+        return matrixA
+    }
+
 
 }
+
+data class VLimits(val vxLimits: LongRange, val vyLimits: LongRange, val vzLimits: LongRange)
 
 fun main() {
     val day = Day24.parseInput("input")
